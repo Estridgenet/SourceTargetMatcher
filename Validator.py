@@ -24,10 +24,13 @@ class Validator:
         self.targetDict = self.invertDict(self.sourceDict)
         self.outputDoc = outputDoc
         self.punctuationSet = set(
-            [",", ".", "?", ";", "。", "'", '"', "”", "“", "，", "、"]
+            [",", ".", "?", ";", "。", "'", '"', "”", "“", "，", "、","\n"]
         )
 
     def run(self):
+        print (('lens',) in self.targetDict)
+        print (('camera') in self.targetDict)
+
         for entry in self.parsedList:
             ID, sourceSegment, targetSegment = entry
 
@@ -43,25 +46,40 @@ class Validator:
                 )
 
             results = self.compareCounts(sourceCount, targetCount)
+            print("RESULTS", results)
             self.writeResults(ID, results)
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
         if lang == "ZH":
-            words = [char for char in string if char not in self.punctuationSet]
+            words = string
         elif lang == "EN":
             words = list(map(self.removePunctuation, string.split(" ")))
 
         for sliceStart in range(0, len(string) - (matchLength - 1)):
-            stringSlice = tuple(words[sliceStart : sliceStart + matchLength])
-            print(stringSlice)
+            if lang == "ZH":
+                s = (words[sliceStart:sliceStart+matchLength])
+                stringSlice = (s,)
+            elif lang == "EN":
+                stringSlice = tuple(words[sliceStart : sliceStart + matchLength],)
+                if stringSlice == ('lens',):
+                    print("HEALFO")
+                    print (self.targetDict)
+                    if ('lens',) in self.targetDict:
+                        print("JESUS FSAHYUI")
+                    if stringSlice in self.targetDict:
+                        print("FUCK YOU")
             if stringSlice in terms:
+                #print('foundSlice', stringSlice)
                 countDict[stringSlice] += 1
+                if lang == "EN":
+                    print('hi')
+                    print(countDict)
 
     def compareCounts(self, sourceCount, targetCount):
         results = []
         for sourceWord, targetWord in self.sourceDict.items():
             swCount = sourceCount[sourceWord]
-            twCount = targetCount[sourceWord]
+            twCount = targetCount[targetWord]
             if swCount != twCount:
                 badResult = "%s: %d, %s: %d\n" % (
                     sourceWord,
@@ -108,7 +126,6 @@ def main():
     parser = XLIFFParser2.XMLParser(xliffFile)
     h = ExtractContent.TagBinder(parser.run())  # creates intermediate parsed file
     matchList = h.findSourceTargetMatch("seg-source", "target")
-    print(matchList)
 
     k = Validator(termDict, output, matchList)
     k.run()
