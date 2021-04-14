@@ -8,9 +8,6 @@
 # Rep invariant: terms are saved into a terminology dictionary as tuple key, value
 # pairs, a copy of the dictionary is then returned
 
-import codecs
-
-
 class TermLoader:
     def __init__(self, fileName):
         self.termDict = dict()
@@ -18,7 +15,7 @@ class TermLoader:
         self.specificTerms = codecs.open(fileName, 'r', encoding='utf-8',errors="ignore")
 
     def getTermDict(self):
-        return self.termDict.copy()  # is this a real copy?
+        return self.termDict.copy()  
 
     def closeFiles(self):
         self.standTerms.close()

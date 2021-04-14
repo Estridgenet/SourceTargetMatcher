@@ -6,30 +6,38 @@ import sys
 import PhraseLoader
 import XLIFFParser2
 import ExtractContent
+from collections import deque
 from collections import defaultdict
 
 """This is a multi-pass validator to check for missed terminology and
 mistranslated phrases in the segments of a patent.
+
 The design is as follows: there are 3 files, a standard terminology
-document supplied by the creator (and editable by the user), a 
-specific terminology file provided by the user, and the segmented 
-ZH-EN document."""
+document supplied by me, the creator (which includes patent-related terms, though the document 
+fully editable by the user), a specific terminology file (e.g. document-specific term file) provided by the user, and an XLIFF or 
+SDLXLIFF document.
+
+The latter two (specific term UTF-8 encoded file and xliff/sdlxliff file) are given on the command line in the given format: 
+    python Validator.py USERTERMBASE.txt USERXLIFFFILE.XLIFF
+
+An output file is written as output.txt once the file has completed.
+
+"""
 
 
 class Validator:
     def __init__(self, termDict, outputDoc, parsedList):
-
         self.parsedList = parsedList
         self.sourceDict = termDict
-        self.targetDict = self.invertDict(self.sourceDict)
+        self.targetDict = self.invertDict(
+            self.sourceDict
+        )  # For target-to-source lookup
         self.outputDoc = outputDoc
         self.punctuationSet = set(
-            [",", ".", "?", ";", "。", "'", '"', "”", "“", "，", "、","\n"]
+            [",", ".", "?", ";", "。", "'", '"', "”", "“", "，", "、", "\n"]
         )
 
     def run(self):
-        print (('lens',) in self.targetDict)
-        print (('camera') in self.targetDict)
 
         for entry in self.parsedList:
             ID, sourceSegment, targetSegment = entry
@@ -46,55 +54,65 @@ class Validator:
                 )
 
             results = self.compareCounts(sourceCount, targetCount)
-            print("RESULTS", results)
             self.writeResults(ID, results)
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
+
         if lang == "ZH":
-            words = string
+            words = string.rstrip()
         elif lang == "EN":
-            words = list(map(self.removePunctuation, string.split(" ")))
+            words = list(
+                map(self.removePunctuation, string.lower().rstrip().split(" "))
+            )
 
         for sliceStart in range(0, len(string) - (matchLength - 1)):
             if lang == "ZH":
-                s = (words[sliceStart:sliceStart+matchLength])
+                s = words[sliceStart : sliceStart + matchLength]
                 stringSlice = (s,)
             elif lang == "EN":
-                stringSlice = tuple(words[sliceStart : sliceStart + matchLength],)
-                if stringSlice == ('lens',):
-                    print("HEALFO")
-                    print (self.targetDict)
-                    if ('lens',) in self.targetDict:
-                        print("JESUS FSAHYUI")
-                    if stringSlice in self.targetDict:
-                        print("FUCK YOU")
+                stringSlice = tuple(
+                    words[sliceStart : sliceStart + matchLength],
+                )
             if stringSlice in terms:
-                #print('foundSlice', stringSlice)
                 countDict[stringSlice] += 1
-                if lang == "EN":
-                    print('hi')
-                    print(countDict)
 
     def compareCounts(self, sourceCount, targetCount):
-        results = []
+
+        results = deque()
+
         for sourceWord, targetWord in self.sourceDict.items():
+
             swCount = sourceCount[sourceWord]
             twCount = targetCount[targetWord]
+
             if swCount != twCount:
-                badResult = "%s: %d, %s: %d\n" % (
+                badResult = (
+                    "###\nPlease check the following phrase:\n%s: %d, %s: %d\n###\n"
+                    % (
+                        sourceWord,
+                        swCount,
+                        targetWord,
+                        twCount,
+                    )
+                )
+                results.append(badResult)
+
+            else:
+                goodResult = "No error:  %s: %d, %s: %d\n" % (
                     sourceWord,
                     swCount,
                     targetWord,
                     twCount,
                 )
-                results.append(badResult)
+                results.appendleft(goodResult)
+
         return results
 
     def writeResults(self, ID, results):
         self.outputDoc.write("Segment ID: %s\n" % (ID))
         for r in results:
             self.outputDoc.write(r)
-        self.outputDoc.write("\n")
+        # self.outputDoc.write("\n")
 
     def invertDict(self, d):
         """only works for 1-1 correspondences"""
@@ -107,6 +125,7 @@ class Validator:
 
         if word[0] in self.punctuationSet:
             word = word[1:]
+
         if word[-1] in self.punctuationSet:
             word = word[0 : len(word) - 1]
 
@@ -119,13 +138,19 @@ def main():
 
     output = open("output.txt", "w+")
 
-    termLoader = PhraseLoader.TermLoader(termsList)  # need file
+    termLoader = PhraseLoader.TermLoader(termsList)
     termLoader.loadTerms()
     termDict = termLoader.getTermDict()
 
     parser = XLIFFParser2.XMLParser(xliffFile)
-    h = ExtractContent.TagBinder(parser.run())  # creates intermediate parsed file
-    matchList = h.findSourceTargetMatch("seg-source", "target")
+    parsedTree = parser.run()
+    extractor = ExtractContent.TagBinder(parsedTree)
+
+    # For SDLXLIFF Files
+    matchList = extractor.findSourceTargetMatch("seg-source", "target")
+
+    # For XLIFF Files
+    # TODO: add XLIFF functionality!
 
     k = Validator(termDict, output, matchList)
     k.run()
