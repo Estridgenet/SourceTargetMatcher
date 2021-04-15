@@ -1,37 +1,62 @@
+# Sample SDLXLIFF tagging:
 # <target><mrk mtype="seg" mid="5"/></target>
 # <seg-source><mrk mtype="seg" mid="5">Drawing_references_to_be_translated:</mrk>
+
+# Sample XLIFF tagging:
+
+
+# TODO: Cleanup, can probably just use one dfs structure
+
+
+'''
+<body>
+<trans-unit id="0000000001" datatype="x-text/xml" restype="string">
+<source>人机交互系统及其方法、终端设备</source>
+<target/>
+</trans-unit>
+</body>
+'''
+
 from collections import defaultdict
 import XLIFFParser2
 
 
 class TagBinder:
-    """a collections of trees is passed in with nodes.
-    Nodes have the following format:
-    NODE:
-    NODEID: int
-    TAG: string
-    ATTRIBUTES: dict
-    CHILDREN: list of nodes
-    CONTENT: list of strings
-
+    """
+    a collection of trees is passed in with nodes.
+    Nodes have the following attributes:
+    parent: node
+    nodeid: int
+    tag: string
+    attributes: dict
+    children: list of nodes
+    content: list of strings
     """
 
     def __init__(self, dataTree):
+
         self.dataTree = self.getTreeDict(dataTree)
-        # print(self.dataTree['seg-source'])
         self.matchDict = dict()
 
     def getTreeDict(self, treeList):
+        """converts a list of Nodes into a dictionary with the root node
+        tag id as key and nodes having said tag id as the values
+        Input: parsed xliff data tree list
+        returns: data tree dictionary
+        """
+
         tagDict = defaultdict(list)
+
         for node in treeList:
             tagDict[node.tag].append(node)
+
         return tagDict
 
     def dfsSource(self, sourceTag):
         dfsDict = dict()
         for sourceNode in self.dataTree[
             sourceTag
-        ]:  # THIS WILL DELETE NODES IF THEY DONT HAVE UNIQUE IDS
+        ]:  # this deletes nodes if said nodes don't have unique tag id & attribute structures
             self.dfsHelper("", sourceNode, dfsDict)
 
         return dfsDict
@@ -78,6 +103,7 @@ class TagBinder:
             self.dfsFinder(curPath, matchTag, subTree, sourceDict, matches)
 
     def stringify(self, content):
+
         string = ""
         for c in content:
             string += c + "\n"

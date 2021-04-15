@@ -7,6 +7,7 @@ import PhraseLoader
 import XLIFFParser2
 import ExtractContent
 from collections import deque
+
 from collections import defaultdict
 
 """This is a multi-pass validator to check for missed terminology and
@@ -144,13 +145,16 @@ def main():
 
     parser = XLIFFParser2.XMLParser(xliffFile)
     parsedTree = parser.run()
+    print(parsedTree)
     extractor = ExtractContent.TagBinder(parsedTree)
 
     # For SDLXLIFF Files
     matchList = extractor.findSourceTargetMatch("seg-source", "target")
 
+
     # For XLIFF Files
     # TODO: add XLIFF functionality!
+    matchList += extractor.findSourceTargetMatch("source","target")
 
     k = Validator(termDict, output, matchList)
     k.run()
