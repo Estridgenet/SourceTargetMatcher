@@ -1,15 +1,21 @@
 import Validator
 import tkinter
 from tkinter import filedialog
-import webbrowser # will open text editor despite name
+import webbrowser  # will open text editor despite name
 import BatchProcess
+
+
+# TODO: FIX THIS TERRIBLE THING
 
 
 root = tkinter.Tk()
 root.title("Patent Validator")
+root.geometry("600x300")
 
+baseFrame = tkinter.Frame(width=600, height=300)
+baseFrame.grid(column=0,row=0,columnspan=4,rowspan=4)
 # Create Greeting top Frame
-topFrame = tkinter.Frame()
+topFrame = tkinter.Frame(baseFrame)
 topFrame.grid(row=0, column=0, columnspan=4)
 
 greeting = tkinter.Label(topFrame, text="Patent Validation Tool\nBy Eli Estridge")
@@ -17,8 +23,8 @@ greeting.grid(row=0, sticky="n")
 
 # Create L-hand single file processing frame and subsidiary buttons
 ######################################################################
-fromFileFrame = tkinter.Frame(root)
-fromFileFrame.grid(row=1, column=0, rowspan=4, columnspan=2)
+fromFileFrame = tkinter.Frame(baseFrame, width=300, height=300)
+fromFileFrame.grid(row=0, column=0, rowspan=4, columnspan=2)
 
 
 def openFile():
@@ -76,13 +82,11 @@ button3.grid(row=4, column=0, columnspan=2)
 ######################################################################
 
 
-
-
 ######################################################################
 # Create R-hand Batch frame
 
-batchFrame = tkinter.Frame(root)
-batchFrame.grid(row=1, column=2, rowspan=4, columnspan=2)
+batchFrame = tkinter.Frame(baseFrame,width=300,height=300)
+batchFrame.grid(row=0, column=2, rowspan=4, columnspan=2)
 entry3 = tkinter.Label(batchFrame, text="Project directory: ")
 
 dirpath = ""
@@ -94,14 +98,14 @@ def openDirectory():
     dirpath = filedialog.askdirectory()
     entry3.config(text=dirpath)
 
+
 def runBatchProcess():
     if dirpath != "":
-        print('beep')
-        print(dirpath)
-        for termBase, xlfFile in BatchProcess.walkDir(dirpath):
-            print(termBase, xlfFile)
+        print("Looking through %s" % dirpath)
+        for termBase, xlfFile in BatchProcess.walkShallowDir(dirpath):
             Validator.main(termBase, xlfFile)
         root.destroy()
+
 
 button4 = tkinter.Button(batchFrame, text="Batch Process", command=openDirectory)
 entry4 = tkinter.Label(batchFrame)
@@ -115,6 +119,5 @@ entry4.grid(row=3)
 button5.grid(row=4, column=0, columnspan=2)
 
 ######################################################################
-
 
 root.mainloop()
