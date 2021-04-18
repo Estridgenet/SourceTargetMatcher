@@ -1,7 +1,7 @@
 import sys
 
-
 class FileReader:
+
     """Basic State Machine Reader Implementation.  Returns single chars and removes all newline marks.
     Nothing else is removed, but more functionality can be implemented by modifying current
     methods or adding new ones.

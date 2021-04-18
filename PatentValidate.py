@@ -2,6 +2,7 @@ import Validator
 import tkinter
 from tkinter import filedialog
 import webbrowser # will open text editor despite name
+import BatchProcess
 
 
 root = tkinter.Tk()
@@ -75,8 +76,6 @@ button3.grid(row=4, column=0, columnspan=2)
 ######################################################################
 
 
-def runBatchProcess():
-    pass
 
 
 ######################################################################
@@ -95,6 +94,14 @@ def openDirectory():
     dirpath = filedialog.askdirectory()
     entry3.config(text=dirpath)
 
+def runBatchProcess():
+    if dirpath != "":
+        print('beep')
+        print(dirpath)
+        for termBase, xlfFile in BatchProcess.walkDir(dirpath):
+            print(termBase, xlfFile)
+            Validator.main(termBase, xlfFile)
+        root.destroy()
 
 button4 = tkinter.Button(batchFrame, text="Batch Process", command=openDirectory)
 entry4 = tkinter.Label(batchFrame)

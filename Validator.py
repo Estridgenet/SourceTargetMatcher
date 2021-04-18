@@ -55,6 +55,9 @@ class Validator:
                 )
 
             results = self.compareCounts(sourceCount, targetCount)
+            print(sourceCount)
+            print(targetCount)
+
             self.writeResults(ID, results)
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
@@ -133,9 +136,19 @@ class Validator:
         return word
 
 
+def getFileDir(filepath):
+
+    for curIndex in range(len(filepath)-1, -1, -1):
+        if filepath[curIndex] == '/' or filepath[curIndex] == '\\':
+            break
+    if curIndex != 0:
+        return filepath[0:curIndex+1]
+    return ''
+
+
+
 def main(termsList, xliffFile):
 
-    output = open("output.txt", "w+")
 
     termLoader = PhraseLoader.TermLoader(termsList)
     termLoader.loadTerms()
@@ -143,15 +156,17 @@ def main(termsList, xliffFile):
 
     parser = XLIFFParser2.XMLParser(xliffFile)
     parsedTree = parser.run()
-    print(parsedTree)
     extractor = ExtractContent.TagBinder(parsedTree)
+
+    # writes to same directory as the xliff file
+    output = open(getFileDir(xliffFile) + "output.txt", "w+")
 
     # For SDLXLIFF Files
     matchList = extractor.findSourceTargetMatch("seg-source", "target")
 
     # For XLIFF Files
     # TODO: add XLIFF functionality!
-    matchList += extractor.findSourceTargetMatch("source", "target")
+    #matchList += extractor.findSourceTargetMatch("source", "target")
 
     k = Validator(termDict, output, matchList)
     k.run()
