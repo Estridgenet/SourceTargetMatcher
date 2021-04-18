@@ -1,5 +1,0 @@
-# THIS IS A COMMENT
-镜面反射, specular reflection
-替换, substitution
-摄像, camera
-透镜, lens

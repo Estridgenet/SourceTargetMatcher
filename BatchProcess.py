@@ -5,8 +5,9 @@
 import os
 import re
 
+import Validator
+import sys
 
-# TODO: Completely redo this terrible GUI
 
 FILETYPEMATCH = ".*?[.]sdlxliff"
 
@@ -54,12 +55,14 @@ def walkShallowDir(directorypath):
         if node.is_dir():
             directories.append(node.path)
 
+    print(directories)
     filePairs = []
 
     # scan subdirectories for files
     for subdir in directories:
 
-        files = [i.path for i in os.scandir(subdir) if i.is_file()]
+        files = [i.name for i in os.scandir(subdir) if i.is_file()]
+        print(files)
 
         a = findNotes(files)
         b = findSDLXLF(files)
@@ -68,3 +71,11 @@ def walkShallowDir(directorypath):
             filePairs.append((os.path.join(subdir, a), os.path.join(subdir, b)))
 
     return filePairs
+
+
+if __name__ == "__main__":
+    a = sys.argv[1]
+    filePairs = walkShallowDir(a)
+    for note, sdlxlf in filePairs:
+        Validator.main(note, sdlxlf)
+    print("Process Complete")
