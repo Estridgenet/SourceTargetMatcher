@@ -1,0 +1,22 @@
+<xliff version='1.2'
+       xmlns='urn:oasis:names:tc:xliff:document:1.2'>
+<file original='hello.txt' source-language='en' target-language='fr'
+       datatype='plaintext'>
+<body>
+<trans-unit id='1'>
+<source>我喜欢吃饭。</source>
+<target>I like to eat food.</target>
+<alt-trans>
+<target xml:lang='es'>Hola mundo</target>
+</alt-trans>
+</trans-unit>
+<trans-unit id='2'>
+<source>我叫安毅。</source>
+<target>My name is Eli.</target>
+<alt-trans>
+<target xml:lang='es'>Hola mundo</target>
+</alt-trans>
+</trans-unit>
+</body>
+</file>
+</xliff>

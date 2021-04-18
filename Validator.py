@@ -133,9 +133,7 @@ class Validator:
         return word
 
 
-def main():
-    termsList = sys.argv[1]
-    xliffFile = sys.argv[2]
+def main(termsList, xliffFile):
 
     output = open("output.txt", "w+")
 
@@ -151,10 +149,9 @@ def main():
     # For SDLXLIFF Files
     matchList = extractor.findSourceTargetMatch("seg-source", "target")
 
-
     # For XLIFF Files
     # TODO: add XLIFF functionality!
-    matchList += extractor.findSourceTargetMatch("source","target")
+    matchList += extractor.findSourceTargetMatch("source", "target")
 
     k = Validator(termDict, output, matchList)
     k.run()
@@ -163,4 +160,6 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    termsList = sys.argv[1]
+    xliffFile = sys.argv[2]
+    main(termsList, xliffFile)

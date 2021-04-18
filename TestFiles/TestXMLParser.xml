@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?><xliff xmlns:sdl="http://sdl.com/FileTypes/SdlXliff/1.0" xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2" sdl:version="1.0">
+	<seg-source>
+		<x id="locked23" xid="lockTU_9d4d082e-0295-4542-90e8-5528cac88a07"/></seg-source>
+	<target><x id="locked24" xid="lockTU_52f3381f-3793-4a43-95e3-ac4bb8abfc9c"/></target>
+	<trans-unit translate="no" id="ca5617c9-ff05-4999-a5d4-06e015e3d234">
+		<source><x id="35"/></source></trans-unit>
+	<trans-unit id="77548933-0422-4db4-aba3-734dcf2be088">
+		<source>Drawing_references_to_be_translated:</source><seg-source><mrk mtype="seg" mid="5">Drawing_references_to_be_translated:</mrk></seg-source><target><mrk mtype="seg" mid="5"/>HAMBONE</target><sdl:seg-defs><sdl:seg id="5" conf="Translated" origin="tm" origin-system="WorldServer" percent="100"><sdl:value key="SegmentIdentityHash">QCSSMJSpyrF+FjokPmlBrXl4+xw=</sdl:value></sdl:seg></sdl:seg-defs></trans-unit><trans-unit translate="no" id="4e0a993d-9cbe-4d01-9429-041ff6a5d1ee"><source><x id="36"/></source></trans-unit><trans-unit id="lockTU_14b5a5cf-8df6-4251-a384-3918b694483e" translate="no" sdl:locktype="Manual"><source>
+	</source>
+</trans-unit>
+</xml>
