@@ -6,6 +6,7 @@ import sys
 import PhraseLoader
 import XLIFFParser2
 import ExtractContent
+import DatabaseHelper as db
 from collections import deque
 
 from collections import defaultdict
@@ -55,15 +56,16 @@ class Validator:
                 )
 
             results = self.compareCounts(sourceCount, targetCount)
-            print(sourceCount)
-            print(targetCount)
+            # print(sourceCount)
+            # print(targetCount)
 
             self.writeResults(ID, results)
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
 
         if lang == "ZH":
-            words = string.rstrip()
+            words = self.replaceChinesePunctuation(string.rstrip().lower())
+            print(words)
         elif lang == "EN":
             words = list(
                 map(self.removePunctuation, string.lower().rstrip().split(" "))
@@ -80,35 +82,40 @@ class Validator:
             if stringSlice in terms:
                 countDict[stringSlice] += 1
 
+    def replaceChinesePunctuation(self, string):
+        replaceDict = {"（": "(", "）": ")", "，": ",", "“": '"', "”": '"', "。": "."}
+        return "".join([i if i not in replaceDict else replaceDict[i] for i in string])
+
     def compareCounts(self, sourceCount, targetCount):
 
         results = deque()
 
-        for sourceWord, targetWord in self.sourceDict.items():
+        for sourceWord, targetList in self.sourceDict.items():
+            for targetWord in targetList:
+                swCount = sourceCount[sourceWord]
 
-            swCount = sourceCount[sourceWord]
-            twCount = targetCount[targetWord]
+                twCount = targetCount[targetWord]
 
-            if swCount != twCount:
-                badResult = (
-                    "###\nPlease check the following phrase:\n%s: %d, %s: %d\n###\n"
-                    % (
+                if swCount != twCount:
+                    badResult = (
+                        "###\nPlease check the following phrase:\n%s: %d, %s: %d\n###\n"
+                        % (
+                            sourceWord,
+                            swCount,
+                            targetWord,
+                            twCount,
+                        )
+                    )
+                    results.append(badResult)
+
+                else:
+                    goodResult = "No error:  %s: %d, %s: %d\n" % (
                         sourceWord,
                         swCount,
                         targetWord,
                         twCount,
                     )
-                )
-                results.append(badResult)
-
-            else:
-                goodResult = "No error:  %s: %d, %s: %d\n" % (
-                    sourceWord,
-                    swCount,
-                    targetWord,
-                    twCount,
-                )
-                results.appendleft(goodResult)
+                    results.appendleft(goodResult)
 
         return results
 
@@ -119,10 +126,14 @@ class Validator:
         # self.outputDoc.write("\n")
 
     def invertDict(self, d):
-        """only works for 1-1 correspondences"""
+
+        # TODO: better 1-k functionality (current processes terms as if they are completely separate)
+
+        """only works for 1-k correspondences"""
         invertedDict = dict()
-        for k, v in d.items():
-            invertedDict[v] = k
+        for k, vList in d.items():
+            for v in vList:
+                invertedDict[v] = k
         return invertedDict
 
     def removePunctuation(self, word):
@@ -138,38 +149,53 @@ class Validator:
 
 def getFileDir(filepath):
 
-    for curIndex in range(len(filepath)-1, -1, -1):
-        if filepath[curIndex] == '/' or filepath[curIndex] == '\\':
+    for curIndex in range(len(filepath) - 1, -1, -1):
+        if filepath[curIndex] == "/" or filepath[curIndex] == "\\":
             break
     if curIndex != 0:
-        return filepath[0:curIndex+1]
-    return ''
-
+        return filepath[0 : curIndex + 1]
+    return ""
 
 
 def main(termsList, xliffFile):
 
-
     termLoader = PhraseLoader.TermLoader(termsList)
     termLoader.loadTerms()
-    termDict = termLoader.getTermDict()
+    specTermDictForDatabase, specTermDictNoSave = termLoader.getTermDicts()
+    database = db.DatabaseHelper()
 
     parser = XLIFFParser2.XMLParser(xliffFile)
     parsedTree = parser.run()
+
     extractor = ExtractContent.TagBinder(parsedTree)
+    IPCCODE = extractor.findIPCCode()
+
+    # Fetch from database
+    genTermDict = database.getTerms(IPCCODE)
+
+    # Update Database
+    # DatabaseHelper.addterms(IPCCODE, specificTerms)
 
     # writes to same directory as the xliff file
-    output = open(getFileDir(xliffFile) + "output.txt", "w+")
+    output = open(getFileDir(xliffFile) + "output_check.txt", "w+")
 
     # For SDLXLIFF Files
     matchList = extractor.findSourceTargetMatch("seg-source", "target")
 
     # For XLIFF Files
-    # TODO: add XLIFF functionality!
-    #matchList += extractor.findSourceTargetMatch("source", "target")
+    # TODO: add XLIFF functionality
+    # matchList += extractor.findSourceTargetMatch("source", "target")
 
-    k = Validator(termDict, output, matchList)
+    k = Validator(
+        {**genTermDict, **specTermDictForDatabase, **specTermDictNoSave},
+        output,
+        matchList,
+    )
     k.run()
+
+    # add relevant terms to dictionary
+    database.setTerms(specTermDictForDatabase, IPCCODE)
+    database.updateDatabase()
 
     output.close()
 

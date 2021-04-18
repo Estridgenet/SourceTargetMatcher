@@ -8,43 +8,64 @@
 # Rep invariant: terms are saved into a terminology dictionary as tuple key, value
 # pairs, a copy of the dictionary is then returned
 
-
 import codecs
+from collections import defaultdict
 
 
 class TermLoader:
     def __init__(self, fileName):
-        self.termDict = dict()
+        self.termDictForDatabase = defaultdict(list)
+        self.termDictNoSave = defaultdict(list)
+
+        """
         self.standTerms = codecs.open(
             "StandardWords.txt", "r", encoding="utf-8", errors="ignore"
         )
+        """
         self.specificTerms = codecs.open(
             fileName, "r", encoding="utf-8", errors="ignore"
         )
 
-    def getTermDict(self):
-        return self.termDict.copy()
+    def getTermDicts(self):
+        return self.termDictForDatabase.copy(), self.termDictNoSave.copy()
 
     def closeFiles(self):
-        self.standTerms.close()
+        # self.standTerms.close()
         self.specificTerms.close()
 
     def loadTerms(self):
+        """
         for line in self.standTerms.readlines():
             if self.isComment(line):
                 continue
             if self.wellFormatted(line):
                 sourceTerm, targetTerm = self.cleanSplit(line)
                 self.termDict[sourceTerm] = targetTerm
+        """
+        doNotAddToDatabase = False
 
         for line in self.specificTerms.readlines():
+
+            if self.isDatabaseFlag(line):
+                doNotAddToDatabase = True
+                continue
             if self.isComment(line):
                 continue
+
             if self.wellFormatted(line):
                 sourceTerm, targetTerm = self.cleanSplit(line)
-                self.termDict[sourceTerm] = targetTerm
+                if not doNotAddToDatabase:
+                    self.termDictForDatabase[sourceTerm].append(targetTerm)
+                else:
+                    print("beep", sourceTerm, targetTerm)
+                    self.termDictNoSave[sourceTerm].append(targetTerm)
 
         self.closeFiles()
+
+    def isDatabaseFlag(self, line):
+        return (
+            line.rstrip() == "@@@"
+        )  # marks that the following terms should not be added to database
 
     def isComment(self, line):
         return line[0] == "#"

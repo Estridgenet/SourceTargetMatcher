@@ -2,20 +2,21 @@
 # <target><mrk mtype="seg" mid="5"/></target>
 # <seg-source><mrk mtype="seg" mid="5">Drawing_references_to_be_translated:</mrk>
 
+import re
+
 # Sample XLIFF tagging:
 
 
 # TODO: Cleanup, can probably just use one dfs structure
 
-
-'''
+"""
 <body>
 <trans-unit id="0000000001" datatype="x-text/xml" restype="string">
 <source>人机交互系统及其方法、终端设备</source>
 <target/>
 </trans-unit>
 </body>
-'''
+"""
 
 from collections import defaultdict
 import XLIFFParser2
@@ -108,6 +109,21 @@ class TagBinder:
         for c in content:
             string += c + "\n"
         return string
+
+    def findIPCCode(self):
+        '''looks for <st> tag within tree, then searches for name="IPC" within
+        the content of this is from the original xml file.  we want the most generic
+        part, i.e. From G02B 13, we just want "G02"'''
+
+        for node in self.dataTree["st"]:
+            content = self.stringify(node.content)
+            if re.search("IPC", content):
+                MATCHFINDER = "value=&quot;(.*?)&quot;"
+                m = re.search(MATCHFINDER, content).group(1)
+
+                GENERICIPC = r"^\w[\d]+"
+
+                return re.search(GENERICIPC, m).group()
 
     def findSourceTargetMatch(self, sourceTag, targetTag):
         """this is a rather basic implementation.  It will find

@@ -47,7 +47,7 @@ class XMLParser:
 
         else:
             self.searchTags = set(
-                ["seg-source", "mrk", "target", "source"]
+                ["seg-source", "mrk", "target", "source", "st"]
             )  # necessary source tags to find SDLXLIFF and XLIFF source/target segs
 
         self.tagStack = []  # keep track of embedded tag tree
