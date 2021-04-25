@@ -4,10 +4,10 @@
 
 import re
 
+# TODO: Cleanup, can probably just use one dfs structure
+
 # Sample XLIFF tagging:
 
-# TODO: Cleanup, can probably just use one dfs structure
-# TODO: Needs to be compatible with report files
 
 """
 <body>
@@ -118,6 +118,8 @@ class TagBinder:
 
         for node in self.dataTree["st"]:
             content = self.stringify(node.content)
+
+            # For Abstracts
             if re.search("IPC", content):
                 MATCHFINDER = "value=&quot;(.*?)&quot;"
                 m = re.search(MATCHFINDER, content).group(1)
@@ -134,6 +136,17 @@ class TagBinder:
                     if re.search(SPECIFICIPC, m)
                     else None,
                 )
+            # For Reports
+            if re.search("classifications-ipcr", content):
+
+                IPCGROUPS = r"[&]gt[;]([\w][\d]+[\w])[\s]+([\d]+[/][\d]+)"
+
+                result = re.search(IPCGROUPS, content)
+                print(result.group(1), result.group(2))
+                if result:
+                    return result.group(1), result.group(2)
+
+        return None, None
 
     def findSourceTargetMatch(self, sourceTag, targetTag):
         """this is a rather basic implementation.  It will find

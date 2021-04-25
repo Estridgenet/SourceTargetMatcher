@@ -1,5 +1,6 @@
 import sys
 
+
 class FileReader:
 
     """Basic State Machine Reader Implementation.  Returns single chars and removes all newline marks.
@@ -15,7 +16,7 @@ class FileReader:
 
     def __init__(self, f):
         try:
-            self.file = open(f, "r")
+            self.file = open(f, "r", encoding="utf-8")
         except IOError:
             sys.stderr.write("File read error, please check directory path")
             raise IOError
@@ -27,10 +28,13 @@ class FileReader:
         self.file.close()
 
     def readNextLine(self):
-        self.state = [self.getNextLine(), 0]  # TODO: add max buffering capability
+        self.state = [self.getNextLine(), 0]
 
     def getNextLine(self):
-        return self.file.readline().rstrip()
+
+        line = self.file.readline()
+
+        return line
 
     def getNextChar(self):
 
@@ -44,5 +48,10 @@ class FileReader:
 
         output = self.state[0][self.state[1]]
         self.state[1] += 1  # state change
+
+        # recurse if no suitable char is found, will break if you give it
+        #  data  with 1000+ newlines
+        if output in ("\t", "\r", "\n"):
+            return self.getNextChar()
 
         return output

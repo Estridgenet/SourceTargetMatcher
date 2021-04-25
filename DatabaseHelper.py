@@ -7,7 +7,7 @@ class DatabaseHelper:
     def __init__(self):
 
         if sys.platform.startswith("win"):
-            self.DATABASEPATH = r"/mnt/c/Users/Eli/Desktop/PatentValidator/SourceTargetMatcher/.termDatabase"
+            self.DATABASEPATH = r"C:/Users/Eli/Desktop/PatentValidator/SourceTargetMatcher/.termDatabase"
         else:
             self.DATABASEPATH = r"/home/estridgenet/Dropbox/Programming/Python/PatentValidate/PatentValidator/.termDatabase"
 
@@ -24,10 +24,14 @@ class DatabaseHelper:
         for line in dataList:
             ipc, source, target = line.strip(" \n").split(",")
             if source in ipcDict[ipc]:
-                ipcDict[ipc][(source,)].append(tuple(target.split(" ")))
+                ipcDict[ipc][tuple([char for char in source])].append(
+                    tuple(target.split(" "))
+                )
 
             else:
-                ipcDict[ipc][(source,)] = [tuple(target.split(" "))]
+                ipcDict[ipc][tuple([char for char in source])] = [
+                    tuple(target.split(" "))
+                ]
 
         return ipcDict
 
@@ -43,7 +47,7 @@ class DatabaseHelper:
 
     def makeString(self, lang, tup):
         if lang == "ZH":
-            return tup[0].rstrip()
+            return "".join([i for i in tup if i not in ("", " ")])
 
         return " ".join([i for i in tup if i not in ("", " ")])
 

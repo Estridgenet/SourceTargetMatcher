@@ -14,6 +14,15 @@ A61,聚合物,polymer
 A61,聚氨酯,polyurethane
 A61,聚氨酯泡沫,polyurethane foam
 A61,预聚体,prepolymer
+A61K,双硫仑反应,disulfiram effect
+A61K,基因毒性杂质,genotoxic impurity
+A61K,奥硝唑,ornidazole
+A61K,左奥硝唑,levornidazole
+A61K,注射液,injection fluid
+A61K,溶解,dissolve
+A61K,短链,short chain
+A61K,聚乙二醇,polyethylene glycol
+A61K,静脉炎,phlebitis
 G02,业务流,service flow
 G02,会话,session
 G02,会话管理,session management
@@ -25,10 +34,6 @@ G02,标识,identifier
 G02,网元,network element
 G02,透镜,lens
 G02,镜面反射,specular reflection
-G02B,摄,camera
-G02B,替,substitution
-G02B,透,lens
-G02B,镜,specular reflection
 G06,id号,id number
 G06,人机交互,human-machine interaction
 G06,加密,encrypt
@@ -84,3 +89,23 @@ H04,透过率,transmittance
 H04,配置信息,configuration information
 H04,镀膜,coating
 H04,镂空,hollow
+H04W,会话,session
+H04W,会话管理功能,session management function
+H04W,协议数据单元,protocol data unit
+H04W,基于事件,event based
+H04W,实例,instance
+H04W,网关,gateway
+H04W,网络切片,network slice
+H04W,计费功能,charging function
+H04W,计费过程,charging process
+H04W,订户标识符,subscriber identifier
+None,会话,session
+None,会话管理功能,session management function
+None,协议数据单元,protocol data unit
+None,基于事件,event based
+None,实例,instance
+None,网关,gateway
+None,网络切片,network slice
+None,计费功能,charging function
+None,计费过程,charging process
+None,订户标识符,subscriber identifier

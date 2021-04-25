@@ -102,6 +102,7 @@ class XMLParser:
         if curChar == "":
             return None  # EOF
 
+
         return self.getTagName()
 
     def getTagTree(self, tag):
@@ -131,6 +132,7 @@ class XMLParser:
             while TagID[1] <= len(self.tagStack):
 
                 content = self.getContent()
+                #print(root, content)
                 if content != "":
                     root.content.append(content)
 
