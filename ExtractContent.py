@@ -6,8 +6,8 @@ import re
 
 # Sample XLIFF tagging:
 
-
 # TODO: Cleanup, can probably just use one dfs structure
+# TODO: Needs to be compatible with report files
 
 """
 <body>
@@ -58,11 +58,11 @@ class TagBinder:
         for sourceNode in self.dataTree[
             sourceTag
         ]:  # this deletes nodes if said nodes don't have unique tag id & attribute structures
-            self.dfsHelper("", sourceNode, dfsDict)
+            self.dfsSourceHelper("", sourceNode, dfsDict)
 
         return dfsDict
 
-    def dfsHelper(self, curPath, curNode, treeDict):
+    def dfsSourceHelper(self, curPath, curNode, treeDict):
         curPath += "/" + curNode.tag
 
         for attrID, attrVal in curNode.attributes.items():
@@ -73,7 +73,7 @@ class TagBinder:
             treeDict[curPath] = self.stringify(curNode.content)
 
         for subTree in curNode.children:
-            self.dfsHelper(curPath, subTree, treeDict)
+            self.dfsSourceHelper(curPath, subTree, treeDict)
 
         return treeDict
 
@@ -81,11 +81,11 @@ class TagBinder:
 
         matches = []
         for targetNode in self.dataTree[targetTag]:
-            self.dfsFinder("", sourceTag, targetNode, sourceDict, matches)
+            self.dfsTargetFinder("", sourceTag, targetNode, sourceDict, matches)
 
         return matches
 
-    def dfsFinder(self, curPath, matchTag, curNode, sourceDict, matches):
+    def dfsTargetFinder(self, curPath, matchTag, curNode, sourceDict, matches):
         if not curPath:
             curPath = "/" + matchTag
         else:
@@ -101,7 +101,7 @@ class TagBinder:
             )
 
         for subTree in curNode.children:
-            self.dfsFinder(curPath, matchTag, subTree, sourceDict, matches)
+            self.dfsTargetFinder(curPath, matchTag, subTree, sourceDict, matches)
 
     def stringify(self, content):
 
@@ -111,9 +111,10 @@ class TagBinder:
         return string
 
     def findIPCCode(self):
-        '''looks for <st> tag within tree, then searches for name="IPC" within
-        the content of this is from the original xml file.  we want the most generic
-        part, i.e. From G02B 13, we just want "G02"'''
+        """looks for <st> tag within tree, then searches for name="IPC" within
+        the content of this is from the original xml file.
+        This currently grabs the Generic part (e.g. G02) and specific part (e.g. 13) and returns them as a tuple
+        Will return tuple of (None, None) if it finds nothing"""
 
         for node in self.dataTree["st"]:
             content = self.stringify(node.content)
@@ -121,21 +122,32 @@ class TagBinder:
                 MATCHFINDER = "value=&quot;(.*?)&quot;"
                 m = re.search(MATCHFINDER, content).group(1)
 
-                GENERICIPC = r"^\w[\d]+"
+                GENERICIPC = r"\w[\d]+[\w]"
 
-                return re.search(GENERICIPC, m).group()
+                SPECIFICIPC = r"[\d]*[/][\d]*"
+
+                return (
+                    re.search(GENERICIPC, m).group()
+                    if re.search(GENERICIPC, m)
+                    else None,
+                    re.search(SPECIFICIPC, m).group()
+                    if re.search(SPECIFICIPC, m)
+                    else None,
+                )
 
     def findSourceTargetMatch(self, sourceTag, targetTag):
         """this is a rather basic implementation.  It will find
         source / target segments, then compare a subtree path with all
         attributes.  If the subtree path and attributes are EXACTLY the same, then
         content will be pulled from the source / target segments"""
+        """Data is returned as a list of sub-lists, the sub-lists being of the form:
+        [PATH, SOURCECONTENT, TARGETCONTENT]"""
 
         sourceDict = self.dfsSource(sourceTag)
         couples = self.dfsTarget(sourceDict, sourceTag, targetTag)
 
         for c in couples:
             ID, SOURCE, TARGET = c
-            print(ID + "\n" + SOURCE + "\n" + TARGET + "\n")
+            # print(ID + "\n" + SOURCE + "\n" + TARGET + "\n")
 
         return couples

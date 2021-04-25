@@ -36,8 +36,42 @@ class Validator:
         )  # For target-to-source lookup
         self.outputDoc = outputDoc
         self.punctuationSet = set(
-            [",", ".", "?", ";", "。", "'", '"', "”", "“", "，", "、", "\n"]
+            [
+                ",",
+                ".",
+                "?",
+                ";",
+                "。",
+                "'",
+                '"',
+                "”",
+                "“",
+                "，",
+                "、",
+                "\n",
+                "",
+                ":",
+                "：",
+                "/",
+                "?",
+                "!",
+                "\t",
+                "(",
+                ")",
+                "-",
+            ]
         )
+        self.replaceDict = {
+            "（": "(",
+            "）": ")",
+            "，": ",",
+            "“": '"',
+            "”": '"',
+            "。": ".",
+            "！": "!",
+            "《": "<",
+            "》": ">",
+        }
 
     def run(self):
 
@@ -47,6 +81,7 @@ class Validator:
             sourceCount = defaultdict(int)
             targetCount = defaultdict(int)
 
+            # Compares strings of length 1 to 10
             for stringLength in range(1, 10):
                 self.extractTerms(
                     sourceSegment, self.sourceDict, stringLength, sourceCount, "ZH"
@@ -62,60 +97,91 @@ class Validator:
             self.writeResults(ID, results)
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
+        """removes unnecessary punctuation and creates a list from the terms"""
 
         if lang == "ZH":
-            words = self.replaceChinesePunctuation(string.rstrip().lower())
-            print(words)
-        elif lang == "EN":
             words = list(
-                map(self.removePunctuation, string.lower().rstrip().split(" "))
+                filter(
+                    lambda x: x != "",
+                    map(
+                        self.removePunctuation,
+                        [
+                            i
+                            for i in self.replaceChinesePunctuation(
+                                string.lower()
+                            ).rstrip()
+                        ],
+                    ),
+                )
             )
 
-        for sliceStart in range(0, len(string) - (matchLength - 1)):
+        elif lang == "EN":
+            words = list(
+                filter(
+                    lambda x: x != "",
+                    map(
+                        self.removePunctuation,
+                        string.lower().rstrip().replace("-", " ").split(" "),
+                    ),
+                )
+            )
+
+        for sliceStart in range(0, len(words) - (matchLength - 1)):
+
             if lang == "ZH":
-                s = words[sliceStart : sliceStart + matchLength]
-                stringSlice = (s,)
+                stringSlice = tuple(words[sliceStart : sliceStart + matchLength])
+
             elif lang == "EN":
                 stringSlice = tuple(
                     words[sliceStart : sliceStart + matchLength],
                 )
+
+            # print(stringSlice)
+
             if stringSlice in terms:
                 countDict[stringSlice] += 1
 
     def replaceChinesePunctuation(self, string):
-        replaceDict = {"（": "(", "）": ")", "，": ",", "“": '"', "”": '"', "。": "."}
-        return "".join([i if i not in replaceDict else replaceDict[i] for i in string])
+        return "".join(
+            [i if i not in self.replaceDict else self.replaceDict[i] for i in string]
+        )
 
     def compareCounts(self, sourceCount, targetCount):
 
         results = deque()
 
         for sourceWord, targetList in self.sourceDict.items():
+            swCount = sourceCount[sourceWord]
+            twCount = 0
+
+            # The following compares the count of ALL words attached to the source word
+            # Therefore, if a single source word is attached to many target words, it
+            # will add up the frequency of ALL target words and compare it to the frequency
+            # of the source
             for targetWord in targetList:
-                swCount = sourceCount[sourceWord]
 
-                twCount = targetCount[targetWord]
+                twCount += targetCount[targetWord]
 
-                if swCount != twCount:
-                    badResult = (
-                        "###\nPlease check the following phrase:\n%s: %d, %s: %d\n###\n"
-                        % (
-                            sourceWord,
-                            swCount,
-                            targetWord,
-                            twCount,
-                        )
-                    )
-                    results.append(badResult)
-
-                else:
-                    goodResult = "No error:  %s: %d, %s: %d\n" % (
+            if swCount != twCount:
+                badResult = (
+                    "###\nPlease check the following phrase:\n%s: %d, %s: %d\n###\n"
+                    % (
                         sourceWord,
                         swCount,
                         targetWord,
                         twCount,
                     )
-                    results.appendleft(goodResult)
+                )
+                results.append(badResult)
+
+            else:
+                goodResult = "No error:  %s: %d, %s: %d\n" % (
+                    sourceWord,
+                    swCount,
+                    targetWord,
+                    twCount,
+                )
+                results.appendleft(goodResult)
 
         return results
 
@@ -123,11 +189,9 @@ class Validator:
         self.outputDoc.write("Segment ID: %s\n" % (ID))
         for r in results:
             self.outputDoc.write(r)
-        # self.outputDoc.write("\n")
 
     def invertDict(self, d):
-
-        # TODO: better 1-k functionality (current processes terms as if they are completely separate)
+        # TODO: should add -p flag in notes, we can look for singular and plural
 
         """only works for 1-k correspondences"""
         invertedDict = dict()
@@ -138,13 +202,7 @@ class Validator:
 
     def removePunctuation(self, word):
 
-        if word[0] in self.punctuationSet:
-            word = word[1:]
-
-        if word[-1] in self.punctuationSet:
-            word = word[0 : len(word) - 1]
-
-        return word
+        return "".join([char for char in word if char not in self.punctuationSet])
 
 
 def getFileDir(filepath):
@@ -159,24 +217,26 @@ def getFileDir(filepath):
 
 def main(termsList, xliffFile):
 
+    # Loads terms List into Term Loader
     termLoader = PhraseLoader.TermLoader(termsList)
     termLoader.loadTerms()
+
+    # Grabs Terms to be saved and terms not being saved in database
     specTermDictForDatabase, specTermDictNoSave = termLoader.getTermDicts()
     database = db.DatabaseHelper()
 
+    # Parses xliff file into a list of trees
     parser = XLIFFParser2.XMLParser(xliffFile)
     parsedTree = parser.run()
 
+    # Grabs content pairs
     extractor = ExtractContent.TagBinder(parsedTree)
-    IPCCODE = extractor.findIPCCode()
+    IPCCODEGENERIC, IPCODESPECIFIC = extractor.findIPCCode()
 
-    # Fetch from database
-    genTermDict = database.getTerms(IPCCODE)
+    # Fetches relevant IPC Code terms from database
+    genTermDict = database.getTerms(IPCCODEGENERIC)
 
-    # Update Database
-    # DatabaseHelper.addterms(IPCCODE, specificTerms)
-
-    # writes to same directory as the xliff file
+    # creates output file in same directory as the xliff file
     output = open(getFileDir(xliffFile) + "output_check.txt", "w+")
 
     # For SDLXLIFF Files
@@ -186,6 +246,7 @@ def main(termsList, xliffFile):
     # TODO: add XLIFF functionality
     # matchList += extractor.findSourceTargetMatch("source", "target")
 
+    # Runs check
     k = Validator(
         {**genTermDict, **specTermDictForDatabase, **specTermDictNoSave},
         output,
@@ -193,8 +254,8 @@ def main(termsList, xliffFile):
     )
     k.run()
 
-    # add relevant terms to dictionary
-    database.setTerms(specTermDictForDatabase, IPCCODE)
+    # add relevant terms to dictionary and rewrite to database
+    database.setTerms(specTermDictForDatabase, IPCCODEGENERIC)
     database.updateDatabase()
 
     output.close()

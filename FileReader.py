@@ -27,7 +27,7 @@ class FileReader:
         self.file.close()
 
     def readNextLine(self):
-        self.state = [self.getNextLine(), 0]  # TODO: add better buffering capability
+        self.state = [self.getNextLine(), 0]  # TODO: add max buffering capability
 
     def getNextLine(self):
         return self.file.readline().rstrip()

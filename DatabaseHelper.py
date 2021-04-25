@@ -1,10 +1,15 @@
 ### Simple database for dict terms
+import sys
 from collections import defaultdict
 
 
 class DatabaseHelper:
     def __init__(self):
-        self.DATABASEPATH = r"/mnt/c/Users/Eli/Desktop/PatentValidator/SourceTargetMatcher/.termDatabase"
+
+        if sys.platform.startswith("win"):
+            self.DATABASEPATH = r"/mnt/c/Users/Eli/Desktop/PatentValidator/SourceTargetMatcher/.termDatabase"
+        else:
+            self.DATABASEPATH = r"/home/estridgenet/Dropbox/Programming/Python/PatentValidate/PatentValidator/.termDatabase"
 
         database = open(
             self.DATABASEPATH,

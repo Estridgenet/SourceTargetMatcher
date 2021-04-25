@@ -25,6 +25,10 @@ G02,标识,identifier
 G02,网元,network element
 G02,透镜,lens
 G02,镜面反射,specular reflection
+G02B,摄,camera
+G02B,替,substitution
+G02B,透,lens
+G02B,镜,specular reflection
 G06,id号,id number
 G06,人机交互,human-machine interaction
 G06,加密,encrypt
@@ -63,7 +67,6 @@ H01,重稀土元素,heavy rare earth element
 H01,钕,neoydmium
 H01,铁,iron
 H01,隔板,divider
-H02,上位机,
 H02,公共触点,common contact
 H02,减速器,speed reducer
 H02,功耗,power consumption

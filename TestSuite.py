@@ -3,16 +3,41 @@ import PhraseLoader
 import XLIFFParser2
 import FileReader
 import ExtractContent
+import Validator
 import os
 import sys
+from collections import defaultdict
+
+# TODO: update tests below
+
+
+class TestExtractContent(unittest.TestCase):
+    def setUp(self):
+        testfile = "./TestFiles/testDir/testsdlxlifffile.sdlxliff"
+        parser = XLIFFParser2.XMLParser(testfile)
+        self.parsedTree = parser.run()
+        parser.closeFile()
+        self.extractor = ExtractContent.TagBinder(self.parsedTree)
+
+    def testFindIPCCode(self):
+        IPCCODE = self.extractor.findIPCCode()
+        self.assertTrue(IPCCODE[0] == "G02B")
+        self.assertTrue(IPCCODE[1] == "13/00")
+
+    def testTreeDict(self):
+        """only tests to see if tree dict is being correctly populated"""
+        self.assertTrue("st" in self.extractor.dataTree)
+        self.assertTrue("source" in self.extractor.dataTree)
+        self.assertTrue("target" in self.extractor.dataTree)
+        self.assertTrue("seg-source" in self.extractor.dataTree)
+
+        # TODO: dfs source/target tests. Must create simpler test file to
+        # validate the DFS logic
 
 
 class TestLoader(unittest.TestCase):
     def setUp(self):
-        testfile = open("PhraseLoaderTest.test", "w")
-        testfile.write("")
-        testfile.close()
-        self.loader = PhraseLoader.TermLoader("PhraseLoaderTest.test")
+        self.loader = PhraseLoader.TermLoader("./TestFiles/PhraseLoaderTest.test")
 
     def testComment(self):
         self.assertTrue(self.loader.isComment("# "))
@@ -30,25 +55,56 @@ class TestLoader(unittest.TestCase):
 
     def testCleanSplit(self):
         src, tgt = self.loader.cleanSplit("吃饭, eat food")
-        self.assertTrue(src[0] in ("吃饭",))
+        self.assertTrue(
+            src[0]
+            in (
+                "吃",
+                "饭",
+            )
+        )
         self.assertTrue(tgt == (("eat", "food")))
         self.loader.closeFiles()
 
+    @unittest.skip("")
+    def testRemoveChineseMarkings(self):
+        pass
+
     def testLoadTerms(self):
         self.loader.loadTerms()
-        k = self.loader.getTermDict()
-        print("###")
-        for key, val in k.items():
-            print(key, val)
-        print("###")
+        db, ndb = self.loader.getTermDicts()
+        self.assertTrue(
+            (
+                "静",
+                "脉",
+            )
+            in db
+        )
+        self.assertTrue(
+            (
+                "权",
+                "利",
+                "要",
+                "求",
+            )
+            in ndb
+        )
+        self.loader.closeFiles()
+
+    def testIsDatabaseFlag(self):
+        self.assertTrue(self.loader.isDatabaseFlag("@@@"))
+        self.assertTrue(self.loader.isDatabaseFlag("@@@ "))
+        self.assertFalse(self.loader.isDatabaseFlag("@@@.. "))
+        self.loader.closeFiles()
 
 
 class testFileReader(unittest.TestCase):
+    """Simple EOF/Readin Test"""
+
     def setUp(self):
-        testfile = open("FileReaderTest.test", "w")
+        testfile = open("./TestFiles/FileReaderTest.test", "w")
         testfile.write("THIS IS A TEST")
         testfile.close()
-        self.reader = XLIFFParser2.FileReader("FileReaderTest.test")
+        self.reader = FileReader.FileReader("./TestFiles/FileReaderTest.test")
 
     def testRead(self):
         string = ""
@@ -60,26 +116,7 @@ class testFileReader(unittest.TestCase):
         self.assertTrue(string == "THIS IS A TEST")
 
 
-class testFileReader(unittest.TestCase):
-    """Just testing whether it can output and send EOF
-    properly"""
-
-    def setUp(self):
-        testfile = open("FileReaderTest.test", "w")
-        testfile.write("THIS IS A TEST")
-        testfile.close()
-        self.reader = FileReader.FileReader("FileReaderTest.test")
-
-    def testRead(self):
-        string = ""
-        while True:
-            output = self.reader.getNextChar()
-            if not output:
-                break
-            string += output
-        self.assertTrue(string == "THIS IS A TEST")
-
-
+@unittest.skip("")
 class testXMLParser(unittest.TestCase):
     def setUp(self):
         self.parser = XLIFFParser2.XMLParser("TestXMLParser.xml")
@@ -102,7 +139,6 @@ class testXMLParser(unittest.TestCase):
 
     def testGetTagAttributes(self):
         self.parser.getNextTag()
-        # print(self.parser.getTagAttributes())
         self.parser.closeFile()
 
     @unittest.skip("")
@@ -128,15 +164,57 @@ class testXMLParser(unittest.TestCase):
         newParser.closeFile()
 
 
-class testTagBinder(unittest.TestCase):
+class testValidator(unittest.TestCase):
     def setUp(self):
-        parser = XLIFFParser2.XMLParser("pctcn2020.xml")
-        tree = parser.run()
-        parser.closeFile()
-        self.TagBinder = ExtractContent.TagBinder(tree)
+        parsedList = [["TESTPATH", "静脉狭小。", "narrow vein."]]
+        termDict = {("静", "脉"): [("vein",)]}
+        self.outputDoc = open("./TestFiles/outputtest.test", "w+")
+        self.validator = Validator.Validator(termDict, self.outputDoc, parsedList)
 
-    def testFindSOurceTargetMatch(self):
-        self.TagBinder.findSourceTargetMatch("seg-source", "target")
+    def testExtractTerms(self):
+
+        for entry in self.validator.parsedList:
+            ID, source, target = entry
+
+            sourceDict = defaultdict(int)
+            targetDict = defaultdict(int)
+
+            self.validator.extractTerms(
+                source, self.validator.sourceDict, 1, sourceDict, "ZH"
+            )
+
+            self.assertTrue(len(sourceDict) == 0)
+
+            self.validator.extractTerms(
+                source, self.validator.sourceDict, 2, sourceDict, "ZH"
+            )
+
+            self.assertTrue(len(sourceDict) == 1)
+
+            self.validator.extractTerms(
+                target, self.validator.targetDict, 1, targetDict, "EN"
+            )
+
+            self.assertTrue(len(targetDict) == 1)
+
+            self.validator.extractTerms(
+                target, self.validator.targetDict, 2, targetDict, "EN"
+            )
+            self.assertTrue(len(targetDict) == 1)
+            self.outputDoc.close()
+
+    def testreplaceChinesePunctuation(self):
+        string = "我的玛雅。我和/或你都“喜欢”(聊天)！"
+        self.assertEqual(
+            self.validator.replaceChinesePunctuation(string), '我的玛雅.我和/或你都"喜欢"(聊天)!'
+        )
+        self.outputDoc.close()
+
+    def testRemoveCharacters(self):
+        string1 = '我的玛雅.我和/或你都"喜欢"(聊天)!'
+        string2 = "my dog's aunt/uncle sorta-kinda like fish."
+        print(self.validator.removePunctuation(string1))
+        print(self.validator.removePunctuation(string2))
 
 
 def deleteTestFiles():
@@ -144,10 +222,9 @@ def deleteTestFiles():
         os.remove("FileReaderTest.test")
         os.remove("PhraseLoaderTest.test")
     except:
-        print("Error. No test file loaded?")
+        print("No test files were deleted.  No test file loaded?")
 
 
 if __name__ == "__main__":
     unittest.main()
-
     deleteTestFiles()

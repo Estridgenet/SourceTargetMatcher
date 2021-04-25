@@ -12,53 +12,58 @@ import codecs
 from collections import defaultdict
 
 
+# TODO: Add method to add more generic terms to .termdatabase from file
+
+
+class BadFormattingError(Exception):
+    def __init__(self, badLine):
+        self.badLine = badLine
+
+
 class TermLoader:
     def __init__(self, fileName):
+
         self.termDictForDatabase = defaultdict(list)
         self.termDictNoSave = defaultdict(list)
 
-        """
-        self.standTerms = codecs.open(
-            "StandardWords.txt", "r", encoding="utf-8", errors="ignore"
-        )
-        """
         self.specificTerms = codecs.open(
             fileName, "r", encoding="utf-8", errors="ignore"
         )
 
     def getTermDicts(self):
-        return self.termDictForDatabase.copy(), self.termDictNoSave.copy()
+        return (
+            self.termDictForDatabase.copy(),
+            self.termDictNoSave.copy(),
+        )  # does this actually only yield a copy?
 
     def closeFiles(self):
-        # self.standTerms.close()
         self.specificTerms.close()
 
     def loadTerms(self):
-        """
-        for line in self.standTerms.readlines():
-            if self.isComment(line):
-                continue
-            if self.wellFormatted(line):
-                sourceTerm, targetTerm = self.cleanSplit(line)
-                self.termDict[sourceTerm] = targetTerm
-        """
-        doNotAddToDatabase = False
+        """Saves source: target key values pairs in a dictionary.
+        The keys and values are respectively saved as phrase tuples."""
+
+        doNotAddToDatabase = False  # All terms before @@@ flag are added to database
 
         for line in self.specificTerms.readlines():
 
             if self.isDatabaseFlag(line):
                 doNotAddToDatabase = True
-                continue
-            if self.isComment(line):
+
+            elif self.isComment(line):
                 continue
 
-            if self.wellFormatted(line):
-                sourceTerm, targetTerm = self.cleanSplit(line)
-                if not doNotAddToDatabase:
-                    self.termDictForDatabase[sourceTerm].append(targetTerm)
+            else:
+                if self.wellFormatted(line):
+                    sourceTerm, targetTerm = self.cleanSplit(line)
+                    if not doNotAddToDatabase:
+                        self.termDictForDatabase[sourceTerm].append(targetTerm)
+
+                    else:
+                        self.termDictNoSave[sourceTerm].append(targetTerm)
+
                 else:
-                    print("beep", sourceTerm, targetTerm)
-                    self.termDictNoSave[sourceTerm].append(targetTerm)
+                    raise BadFormattingError(line)
 
         self.closeFiles()
 
@@ -75,21 +80,28 @@ class TermLoader:
         incorrect delimiter is used"""
         delimiter = ","
         if delimiter not in line:
-            print("The following term does not have correct delimiting:", line)
             return False
         return True
 
     def cleanSplit(self, line):
         """splits at delimiter and removes excess spacing"""
         src, tgt = line.rstrip().lower().split(",")
-        return self.removeSpace(src), self.removeSpace(tgt)
+        return self.removeChineseMarkings(src), self.removeSpace(tgt)
+
+    def removeChineseMarkings(self, termString):
+        phrase = []
+
+        for char in termString:
+            if char != " " and char != "-" and char != "/":
+                phrase.append(char)
+        return tuple(phrase)
 
     def removeSpace(self, termString):
         """returns tuples for source word and target word"""
         phrase = []
         currentTerm = []
         for char in termString:
-            if char == " ":
+            if char == " " or char == "-" or char == "/":  # no dashes or "/" allowed
                 if currentTerm:
                     phrase.append("".join(currentTerm))
                     currentTerm = []
@@ -97,4 +109,5 @@ class TermLoader:
                 currentTerm.append(char)
         if currentTerm:
             phrase.append("".join(currentTerm))
+
         return tuple(phrase)

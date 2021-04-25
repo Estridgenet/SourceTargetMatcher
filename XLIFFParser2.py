@@ -18,6 +18,7 @@ class Node:
         self.content = []
 
     def __repr__(self):
+        """
         stringID = "Node %i\n" % (self.TAGID)
         stringTag = "Tag: %s\n" % (self.tag)
         stringAttributes = repr(self.attributes) + "\n"
@@ -30,9 +31,11 @@ class Node:
         contentString = "".join(["Data:\n"] + [i for i in self.content])
 
         return stringID + stringTag + stringAttributes + stringChildren + contentString
+        """
+        return self.__str__()
 
     def __str__(self):
-        return self.__repr__()
+        return "%d: %s" % ((self.TAGID), self.tag)
 
 
 class XMLParser:
@@ -136,7 +139,7 @@ class XMLParser:
                     subTree.parent = root
                     root.children.append(subTree)
 
-        #print(root)
+        # print(root)
         return root
 
     def getSubTree(self):
