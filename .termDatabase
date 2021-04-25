@@ -1,7 +1,42 @@
+A61,二异氰酸酯,diisocyanate
+A61,亲和能力,affinity
+A61,亲水性,hydrophilicity
+A61,力学,mechanics
+A61,吸水能力,water absorption ability
+A61,固化,curing
+A61,多元醇,polyol
+A61,微纤,microfiber
+A61,油浴,oil bath
+A61,浓度,concentration
+A61,溶剂交换,solvent exchange
+A61,细菌纤维素,bacterial cellulose
+A61,聚合物,polymer
+A61,聚氨酯,polyurethane
+A61,聚氨酯泡沫,polyurethane foam
+A61,预聚体,prepolymer
+G02,业务流,service flow
+G02,会话,session
+G02,会话管理,session management
+G02,分流,divert
+G02,应用服务器,application server
 G02,摄像,camera
 G02,替换,substitution
+G02,标识,identifier
+G02,网元,network element
 G02,透镜,lens
 G02,镜面反射,specular reflection
+G06,id号,id number
+G06,人机交互,human-machine interaction
+G06,加密,encrypt
+G06,授权标记,authorization identifier
+G06,机器码,machine code
+G06,注册授权,registration authorization
+G06,注册码,registration code
+G06,特征图,feature map
+G06,解密,decrypt
+G06,语音识别,speech recognition
+G06,载体,carrier
+G06,连接协议,connection protocol
 GEN,主题,subject matter
 GEN,从属权利要求,dependent claim
 GEN,公知常识,common general knowledge
@@ -12,3 +47,37 @@ GEN,技术方案,technical solution
 GEN,本领域,the technical field
 GEN,权利要求,claim
 GEN,独立权利要求,independent claim
+H01,内插管,internally inserted pipe
+H01,减速器,speed reducer
+H01,定子,stator
+H01,容置结构,containment structure
+H01,无机层,inorganic layer
+H01,有几层,organic layer
+H01,永磁,permanent magnet
+H01,燃料电池,fuel cell
+H01,硼,boron
+H01,端盖,end shield
+H01,衬底层,substrate layer
+H01,轻稀土元素,light rare earth element
+H01,重稀土元素,heavy rare earth element
+H01,钕,neoydmium
+H01,铁,iron
+H01,隔板,divider
+H02,上位机,
+H02,公共触点,common contact
+H02,减速器,speed reducer
+H02,功耗,power consumption
+H02,发射触点,emitter contact
+H02,备电,backup power
+H02,定子,stator
+H02,端盖,end shield
+H02,触点,contact
+H04,中继,relay
+H04,修饰层,decoration layer
+H04,响应消息,response information
+H04,撞色效果,color contrast effect
+H04,路径选择,path selection
+H04,透过率,transmittance
+H04,配置信息,configuration information
+H04,镀膜,coating
+H04,镂空,hollow
