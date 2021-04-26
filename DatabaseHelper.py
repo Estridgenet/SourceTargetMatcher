@@ -2,6 +2,8 @@
 import sys
 from collections import defaultdict
 
+#TODO: Set a location for database files on windows and linux
+#TODO: read general terms from a txt file and add them to the dictionary
 
 class DatabaseHelper:
     def __init__(self):

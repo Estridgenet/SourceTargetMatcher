@@ -99,13 +99,3 @@ H04W,网络切片,network slice
 H04W,计费功能,charging function
 H04W,计费过程,charging process
 H04W,订户标识符,subscriber identifier
-None,会话,session
-None,会话管理功能,session management function
-None,协议数据单元,protocol data unit
-None,基于事件,event based
-None,实例,instance
-None,网关,gateway
-None,网络切片,network slice
-None,计费功能,charging function
-None,计费过程,charging process
-None,订户标识符,subscriber identifier

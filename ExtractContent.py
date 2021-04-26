@@ -1,14 +1,6 @@
-# Sample SDLXLIFF tagging:
-# <target><mrk mtype="seg" mid="5"/></target>
-# <seg-source><mrk mtype="seg" mid="5">Drawing_references_to_be_translated:</mrk>
-
 import re
 
-# TODO: Cleanup, can probably just use one dfs structure
-
 # Sample XLIFF tagging:
-
-
 """
 <body>
 <trans-unit id="0000000001" datatype="x-text/xml" restype="string">
@@ -24,26 +16,27 @@ import XLIFFParser2
 
 class TagBinder:
     """
-    a collection of trees is passed in with nodes.
-    Nodes have the following attributes:
-    parent: node
-    nodeid: int
-    tag: string
-    attributes: dict
-    children: list of nodes
-    content: list of strings
+    Search the tree dict for content.
+
+    See XLIFFParser2 for information about the node class and
+    the representation of the data tree.
+
+    Args:
+        dataTree: list of nodes from the XLIFFParser2.
     """
 
     def __init__(self, dataTree):
-
         self.dataTree = self.getTreeDict(dataTree)
         self.matchDict = dict()
 
     def getTreeDict(self, treeList):
-        """converts a list of Nodes into a dictionary with the root node
-        tag id as key and nodes having said tag id as the values
-        Input: parsed xliff data tree list
-        returns: data tree dictionary
+        """Convert node list into dictionary with root node tag as key.
+
+        The node list is converted into a dictionary with the tags of the root
+        nodes as dictionary keys and the corresponding root nodes as values.
+
+        Returns:
+            dictionary with corresponding nodes in a list of dictionary values.
         """
 
         tagDict = defaultdict(list)
@@ -54,6 +47,17 @@ class TagBinder:
         return tagDict
 
     def dfsSource(self, sourceTag):
+        """Search for content of all trees with given source param as root node.
+
+        If tag paths are not unique in tree, they will be overwritten.
+
+        Args:
+            sourceTag (string): xml tag to be searched for, e.g. 'source'
+
+        Returns:
+            dictionary with full root-to-node pathname as key and content
+            associated with end node as dictionary value."""
+
         dfsDict = dict()
         for sourceNode in self.dataTree[
             sourceTag
@@ -63,6 +67,18 @@ class TagBinder:
         return dfsDict
 
     def dfsSourceHelper(self, curPath, curNode, treeDict):
+        """Search the tree of a root node for content.
+
+        Args:
+            curPath (string): current root-to-node path taken, including attributes.
+            Used as key for treeDict.
+            curNode (node): current Node being examined.
+            treeDict (dict): dict using curPath as key and curNode.content as value.
+
+        Returns:
+            treeDict
+        """
+
         curPath += "/" + curNode.tag
 
         for attrID, attrVal in curNode.attributes.items():
@@ -78,6 +94,16 @@ class TagBinder:
         return treeDict
 
     def dfsTarget(self, sourceDict, sourceTag, targetTag):
+        """Search for content of all target trees with given param as root node.
+
+        Args:
+            sourceDict (dict): dictionary of path - content pairs from dfsSource
+            sourceTag (string): source tag that was searched for
+            targetTag (string): corresponding target tag to be searched for.
+
+
+        Returns:
+        """
 
         matches = []
         for targetNode in self.dataTree[targetTag]:
@@ -86,6 +112,16 @@ class TagBinder:
         return matches
 
     def dfsTargetFinder(self, curPath, matchTag, curNode, sourceDict, matches):
+        """Search for target path corresponding to source path.
+
+        Args:
+            curPath (string): current path in the current node tree.
+            matchTag (string): source tag to be matched against.
+            curNode (Node): current Node in the tree.
+            sourceDict (dict): dictionary of path-content pairs from dfsSource.
+            matches (list): list of source-target content matches and source path.
+        """
+
         if not curPath:
             curPath = "/" + matchTag
         else:
@@ -104,6 +140,7 @@ class TagBinder:
             self.dfsTargetFinder(curPath, matchTag, subTree, sourceDict, matches)
 
     def stringify(self, content):
+        """Turn list of strings into single string."""
 
         string = ""
         for c in content:
@@ -111,10 +148,13 @@ class TagBinder:
         return string
 
     def findIPCCode(self):
-        """looks for <st> tag within tree, then searches for name="IPC" within
-        the content of this is from the original xml file.
-        This currently grabs the Generic part (e.g. G02) and specific part (e.g. 13) and returns them as a tuple
-        Will return tuple of (None, None) if it finds nothing"""
+        """look for tag with IPC data nodes trees.
+
+        Returns:
+            tuple containing generic 4-digit IPC code and specific IPC sub-code in
+            the following format: (G02W, 13/00)
+            if one or more items is not found, will return (None, None).
+        """
 
         for node in self.dataTree["st"]:
             content = self.stringify(node.content)
@@ -142,25 +182,37 @@ class TagBinder:
                 IPCGROUPS = r"[&]gt[;]([\w][\d]+[\w])[\s]+([\d]+[/][\d]+)"
 
                 result = re.search(IPCGROUPS, content)
-                print(result.group(1), result.group(2))
+                # print(result.group(1), result.group(2))
                 if result:
                     return result.group(1), result.group(2)
 
         return None, None
 
     def findSourceTargetMatch(self, sourceTag, targetTag):
-        """this is a rather basic implementation.  It will find
-        source / target segments, then compare a subtree path with all
-        attributes.  If the subtree path and attributes are EXACTLY the same, then
-        content will be pulled from the source / target segments"""
-        """Data is returned as a list of sub-lists, the sub-lists being of the form:
-        [PATH, SOURCECONTENT, TARGETCONTENT]"""
+        """Match content of node trees with root source & target tag.
+
+        This method compares full path through node tree (including attributes)
+        of source and target.If it finds a full match of tree path with
+        only sourceTag and targetTag being swapped, it will pair the content
+        of said nodes (if any). For example:
+
+        source/mrk,id=1/text
+        target/mrk,id=1/text
+        would be a match, and any content corresponding to the two nodes would be paired.
+
+        Args:
+            sourceTag (string): source tag to be found.  most likely "seg-source"
+            targetTag (string): target tag to be found.  most likely "target"
+
+        Returns:
+            list of sub-lists, the sub-lists containing the source path to matched content (string),
+            the source content (string), and the target content (string).
+        """
 
         sourceDict = self.dfsSource(sourceTag)
         couples = self.dfsTarget(sourceDict, sourceTag, targetTag)
 
         for c in couples:
             ID, SOURCE, TARGET = c
-            # print(ID + "\n" + SOURCE + "\n" + TARGET + "\n")
 
         return couples

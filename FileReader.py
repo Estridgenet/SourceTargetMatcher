@@ -2,16 +2,10 @@ import sys
 
 
 class FileReader:
+    """Character by character File Reader.
 
-    """Basic State Machine Reader Implementation.  Returns single chars and removes all newline marks.
-    Nothing else is removed, but more functionality can be implemented by modifying current
-    methods or adding new ones.
-
-    Abstraction: returns chars from input file one at a time.
-
-    Rep Invariant: must input file openable and readable by standard Python open method.
-    state is saved in array as curLine string and current position int.
-
+    Args:
+        file path (str): file path of source .xliff or .sdlxliff document.
     """
 
     def __init__(self, f):
@@ -22,21 +16,29 @@ class FileReader:
             raise IOError
 
         self.state = None
-        self.readNextLine()  # initialize
+        self.readNextLine()  # initialize state
 
     def closeFile(self):
+        """Closes the file being read."""
         self.file.close()
 
     def readNextLine(self):
+        """Saves the next line as the current state."""
         self.state = [self.getNextLine(), 0]
 
     def getNextLine(self):
+        """Reads the next line from the file as a string."""
 
         line = self.file.readline()
-
         return line
 
     def getNextChar(self):
+        """Returns next character from the file.
+
+        Returns:
+            The next character that is not a tab, a newline, or a carriage feed.
+            If EOF, returns the empty string.
+        """
 
         # Load new line when old line is exhausted
         if len(self.state[0]) == self.state[1]:

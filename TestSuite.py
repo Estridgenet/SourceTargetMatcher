@@ -6,9 +6,11 @@ import ExtractContent
 import Validator
 import os
 import sys
+import ReferenceNumberCounter
+
 from collections import defaultdict
 
-# TODO: update tests below
+# TODO: update outdated below
 
 
 class TestExtractContent(unittest.TestCase):
@@ -215,6 +217,15 @@ class testValidator(unittest.TestCase):
         string2 = "my dog's aunt/uncle sorta-kinda like fish."
         print(self.validator.removePunctuation(string1))
         print(self.validator.removePunctuation(string2))
+
+
+class TestReferenceCounter(unittest.TestCase):
+    def setUp(self):
+        self.rfcounter = ReferenceNumberCounter.CompareReferenceElements("", "")
+
+    def testIsChineseChar(self):
+        self.assertTrue(self.rfcounter.isChineseChar("的"))
+        self.assertFalse(self.rfcounter.isChineseChar("A"))
 
 
 def deleteTestFiles():

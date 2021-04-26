@@ -55,14 +55,12 @@ def walkShallowDir(directorypath):
         if node.is_dir():
             directories.append(node.path)
 
-    print(directories)
     filePairs = []
 
     # scan subdirectories for files
     for subdir in directories:
 
         files = [i.name for i in os.scandir(subdir) if i.is_file()]
-        print(files)
 
         a = findNotes(files)
         b = findSDLXLF(files)

@@ -253,6 +253,8 @@ def main(termsList, xliffFile):
         matchList,
     )
     k.run()
+    
+    # Runs reference tag check
 
     # add relevant terms to dictionary and rewrite to database
     database.setTerms(specTermDictForDatabase, IPCCODEGENERIC)
