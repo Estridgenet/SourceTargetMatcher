@@ -1,3 +1,16 @@
+A01N,二甲基亚砜,dimethyl sulfoxide
+A01N,体积,volume
+A01N,冻存液,cryopreservation liquid
+A01N,制剂,formulation
+A01N,干细胞,stem cell
+A01N,平衡液,balancing liquid
+A01N,电解质,electrolyte
+A01N,白蛋白,albumin
+A01N,羟乙基淀粉,hydroxyethyl starch
+A01N,脐带,umbilical cord
+A01N,葡萄糖,glucose
+A01N,间充质,mesenchymal
+A01N,骨关节炎,osteoarthritis
 A61,二异氰酸酯,diisocyanate
 A61,亲和能力,affinity
 A61,亲水性,hydrophilicity
@@ -19,10 +32,43 @@ A61K,基因毒性杂质,genotoxic impurity
 A61K,奥硝唑,ornidazole
 A61K,左奥硝唑,levornidazole
 A61K,注射液,injection fluid
+A61K,活性药物成分,active pharmaceutical ingredient
+A61K,溶出速度,dissolution rate
 A61K,溶解,dissolve
+A61K,用药顺应性,medication adherence
 A61K,短链,short chain
+A61K,硝羟喹啉,nitroxoline
+A61K,粒径,particle size
+A61K,组合物,composition
 A61K,聚乙二醇,polyethylene glycol
+A61K,载体,carrier
 A61K,静脉炎,phlebitis
+C02F,伺服电机,servo motor
+C02F,处理罐,treatment cannister
+C02F,污水,wastewater
+C02F,螺栓,bolt
+C02F,螺母,nut
+C07F,化合物,compound
+C07F,卤素,halogen
+C07F,原子,atom
+C07F,发光效率,luminous efficacy
+C07F,杂芳基,heteroaryl group
+C07F,氘,deuterium
+C07F,氰基,cyano group
+C07F,烷基,alkyl group
+C07F,电致发光,electroluminescence
+C07F,芳基,aryl group
+C07F,芳胺基,arylamine group
+C12Q,单细胞,single cell
+C12Q,反转录,reverse transcription
+C12Q,建库,library construction
+C12Q,微流控芯片,microfluidic chip
+C12Q,测序,sequencing
+C12Q,测序文库,sequencing library
+C12Q,片段化,fragmentation
+C12Q,转录组,transcriptome
+C12Q,通量,throughput
+E01C,延伸方向,direction of extension
 G02,业务流,service flow
 G02,会话,session
 G02,会话管理,session management
@@ -46,6 +92,39 @@ G06,解密,decrypt
 G06,语音识别,speech recognition
 G06,载体,carrier
 G06,连接协议,connection protocol
+G06F,多因素认证,multi factor authentication
+G06F,服务提供商,service provider
+G06F,笔筒,barrel
+G06F,纵向轴线,longitudinal axis
+G06F,联邦身份认证,federated identity management
+G06F,认证,authentication
+G06F,访问凭据,access credentials
+G06F,身份认证,identity verification
+G06F,验证,verification
+G06F,验证方式,mode of verification
+G06T,元文件,metadata
+G06T,图像分割,image segmentation
+G06T,实例分割,instance segmentation
+G06T,注意力特征图,attention feature map
+G06T,特征融合图,feature fusion map
+G06T,语义分割,semantic segmentation
+G09G,上拉控制单元,pull up control unit
+G09G,下拉维持单元,pull down holding unit
+G09G,信号下传,down transmit
+G09G,时钟信号产生器,clock signal generator
+G09G,晶体管,transistor
+G09G,栅极,gate electrode
+G09G,漏极,drain electrode
+G09G,画素,pixel
+G09G,移位寄存器,shift register
+G09G,级联,cascade
+G09G,阵列基板,array substrate
+G10L,短语,phrase
+G10L,语速,speaking rate
+G10L,语音合成,speech synthesis
+G10L,语音识别,speech recognition
+G10L,韵律特征,prosodic feature
+G10L,韵律语调短语,prosodic intonational phrase
 GEN,主题,subject matter
 GEN,从属权利要求,dependent claim
 GEN,公知常识,common general knowledge
@@ -72,6 +151,11 @@ H01,重稀土元素,heavy rare earth element
 H01,钕,neoydmium
 H01,铁,iron
 H01,隔板,divider
+H01J,偏心轮,eccentric wheel
+H01J,刻蚀,etching
+H01J,扇形,sector shaped
+H01J,法拉第,faraday
+H01J,耦合窗,coupling window
 H02,公共触点,common contact
 H02,减速器,speed reducer
 H02,功耗,power consumption
@@ -89,11 +173,28 @@ H04,透过率,transmittance
 H04,配置信息,configuration information
 H04,镀膜,coating
 H04,镂空,hollow
+H04L,交换机,switch
+H04L,单播,unicast
+H04L,告警,warning
+H04L,多归,multi homing
+H04L,封装,encapsulation
+H04L,握手,handshaking
+H04L,约束条件,constraint condition
+H04L,网络拓扑,network topology
+H04L,能力信息,capability information
+H04L,解封装,de encapsulation
+H04L,转发路径,forwarding path
+H04L,链路属性,link attribute
 H04W,会话,session
 H04W,会话管理功能,session management function
+H04W,信令,signal
+H04W,信号质量,signal quality
 H04W,协议数据单元,protocol data unit
 H04W,基于事件,event based
 H04W,实例,instance
+H04W,服务小区,serving cell
+H04W,监听,listen
+H04W,空闲态,idle state
 H04W,网关,gateway
 H04W,网络切片,network slice
 H04W,计费功能,charging function

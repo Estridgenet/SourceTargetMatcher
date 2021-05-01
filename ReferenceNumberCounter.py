@@ -1,18 +1,12 @@
 from collections import defaultdict
 import re
 
-# Basic (1) (2) (3), (S1), (S2)
-# Hard (S1, S2)
-# must avoid (my name is .....)
-# Perhaps we should include unparenthesized strings such as
-# CAR SEG M51, in this case we might just look for all caps or
-# caps +
-# should skip drawings and title
-# can also compare numbers since they should all be the same...
+# TODO: unparenthesized strings?
+# TODO: skip drawings and title
 
 
 class CompareReferenceElements:
-    """Compare special markers shared by the source and target texts.
+    """Compare reference number markers shared by the source and target texts.
 
     Args:
         matches (list of lists): matched source/target strings (see ExtractContent).
@@ -64,14 +58,32 @@ class CompareReferenceElements:
             "》": ">",
         }
 
-    def CompareTexts(self):
+    def closeOutputFile(self):
+        ### FOR TESTING PURPOSES ONLY###
+        self.outputfile.close()
+
+    def compareTexts(self):
+        """fig num frequencies in source and target content.
+
+        Returns:
+            list of non-uniform comparison results with id number.
+            Formatting is (IDNUM, REFNUM, SOURCECOUNT, TARGETCOUNT).
+        """
+
         for matchList in self.matches:
-            sourceCount = defaultdict(int)
-            targetCount = defaultdict(int)
 
             idnum, source, target = matchList
+
             source = self.replaceChinesePunctuation(source)
-            pass
+            sourceCount = self.getSourceFigNumbers(source)
+            targetCount = self.getTargetParensContent(target)
+
+            self.outputfile.write(idnum + "\n")
+            self.compareResults(sourceCount, targetCount)
+
+            sourceCount, targetCount = self.getNumbers(source, target)
+
+            self.compareResults(sourceCount, targetCount)
 
     def removePunctuation(self, word):
         return "".join([char for char in word if char not in self.punctuationSet])
@@ -94,53 +106,175 @@ class CompareReferenceElements:
             nextChar = ""  # End of String
         return nextChar
 
-    def getReferenceNumbers(self, string, countDict):
-        # reference number format: (content)
-        # content: element[, element]
-        # element: chars&numbers
-        # we can recursively go through document and look for matches
-        # but we need to have something that yields chars for us
-        pass
+    def getSourceFigNumbers(self, source):
+        """Retrieve valid content from inside ().
 
-    def getContent(self):
-        """Obtains content from inside ()"""
+        Args:
+            source (string): Source (ZH) text with punctuation replaced.
+
+        Returns:
+            Dictionary having reference numbers as key and frequency as value.
+        """
+        countDict = defaultdict(int)
+        self.loadString(source)
+
+        char = self.getNextChar()
+        while char != "":  # EOF
+            if char == "(":
+                elementList = (
+                    self.getSourceElements()
+                )  # grab fig nums from within parens
+                for e in elementList:  # add fig nums to dict
+                    countDict[e] += 1
+            char = self.getNextChar()
+
+        return countDict
+
+    def getTargetParensContent(self, target):
+        """Retrieve fig number-like content from parentheses to match against
+        source Fig numbers
+        Args:
+            target (string): Target (EN) text.
+
+        Returns:
+            dictionary having content fragments as keys and frequencies as values.
+        """
+
+        countDict = defaultdict(int)
+        self.loadString(target)
+
+        char = self.getNextChar()
+        while char != "":  # EOF
+            if char == "(":
+                elementList = (
+                    self.getTargetElements()
+                )  # grab fig nums from within parens
+                for e in elementList:  # add fig nums to dict
+                    countDict[e] += 1
+            char = self.getNextChar()
+
+        return countDict
+
+    #    def getContent(self):
+    #        """Obtains content from inside ()"""
+    #        elements = []
+    #
+    #        while True:
+    #            element, shouldContinue = self.getElement()
+    #            if element == "": # invalid element
+    #                return []
+    #
+    #            elements.append(element)
+    #            if shouldContinue is False:
+    #                break
+    #
+    #        return elements
+
+    def getSourceElements(self):
+        """Check for valid fig num chars and retrieve valid fig nums from string.
+
+        Returns:
+            list: list of strings which are the valid fig nums. will repeat based on
+            frequency.
+        """
         elements = []
-
-        while True:
-            element, shouldContinue = self.getElement()
-            if element == "": # invalid element
-                return []
-
-            elements.append(element)
-            if shouldContinue is False:
-                break
-
-        return elements
-
-    def getElement(self):
         element = []
-
         while True:
             nextChar = self.getNextChar()
-            if nextChar == "":
-                return "", False
-            elif nextChar == " ":
-                return "", False
-            elif nextChar == ")":
-                return "".join(element), False
-            elif nextChar == ",":
-                return "".join(element), True
-            elif self.isChineseChar(nextChar):
-                return "", False
-            else:
+            if nextChar == "":  # EOF
+                return []
+            elif nextChar == " ":  # space between fig nums
+                if element != []:
+                    elements.append("".join(element))
+                    element = []
+                continue
+            elif nextChar == ")":  # end of fig num
+                if element != []:
+                    elements.append("".join(element))
+                    element = []
+                return elements
+            elif nextChar == ",":  # delimiter between fig nums
+                if element != []:
+                    elements.append("".join(element))
+                    element = []
+                continue
+            elif self.isChineseChar(nextChar):  # not a fig num
+                return []
+            else:  # valid ref number char
                 element.append(nextChar)
 
-        return "", False  # shouldn't get here
+        return []  # shouldn't get here
+
+    def getTargetElements(self):
+        """Grabs all fig-number like items from within parentheses.
+
+        Returns:
+            list: list of strings which elements in parens. will repeat based on
+            frequency.
+        """
+        elements = []
+        element = []
+        while True:
+            nextChar = self.getNextChar()
+            if nextChar == "":  # EOF
+                return elements
+            elif nextChar == " ":  # space between elements
+                if element != []:
+                    elements.append("".join(element))
+                    element = []
+                continue
+            elif nextChar == ")":  # end of fig num
+                if element != []:
+                    elements.append("".join(element))
+                return elements
+            elif nextChar == ",":  # delimiter between fig nums
+                if element != []:
+                    elements.append("".join(element))
+                    element = []
+                continue
+            else:  # valid char
+                element.append(nextChar)
+
+        return []  # shouldn't get here
+
+    def compareResults(self, sourceCount, targetCount):
+        # This only provides a source-to-target comparison, because
+        # the target file should not have added any extra content.
+        badResults = []
+
+        for key, value in sourceCount.items():
+            if value != targetCount[key]:
+                badResult = "ERROR: %s: %s VS %s\n" % (key, value, targetCount[key])
+                badResults.append(badResult)
+            else:
+                self.outputfile.write("No error: %s\n" % (key))
+
+        for error in badResults:
+            self.outputfile.write(error)
 
     def isChineseChar(self, char):
+        """Check to see if cur char is Chinese character."""
         # Trick by Ceshine Lee
         return True if (re.search("[\u4e00-\u9FFF]", char)) else False
 
-    def getNumbers(self):
-        # TODO: number functionality
-        pass
+    def getNumbers(self, source, target):
+        # perhaps a simple re search \d*[.]\d* ? Then remove matches that are just [.]
+
+        sourceCount = defaultdict(int)
+        targetCount = defaultdict(int)
+
+        DIGITNUMBER = r"[^.\dA-Z]([\d]+(?:[.][\d]+)*)"
+        NODIGIT = r"\D([.][\d]+)"
+
+        sourceResult = re.findall(DIGITNUMBER, source) + re.findall(NODIGIT, source)
+
+        for num in sourceResult:
+            if num != "..":
+                sourceCount[num] += 1
+
+        targetResult = re.findall(DIGITNUMBER, target) + re.findall(NODIGIT, target)
+        for num in targetResult:
+            if num != "..":
+                targetCount[num] += 1
+
+        return sourceCount, targetCount

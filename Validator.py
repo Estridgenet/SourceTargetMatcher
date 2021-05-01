@@ -4,6 +4,7 @@
 import sys
 
 import PhraseLoader
+import ReferenceNumberCounter
 import XLIFFParser2
 import ExtractContent
 import DatabaseHelper as db
@@ -253,8 +254,10 @@ def main(termsList, xliffFile):
         matchList,
     )
     k.run()
-    
+
     # Runs reference tag check
+    refChecker = ReferenceNumberCounter.CompareReferenceElements(matchList, output)
+    refChecker.compareTexts()
 
     # add relevant terms to dictionary and rewrite to database
     database.setTerms(specTermDictForDatabase, IPCCODEGENERIC)

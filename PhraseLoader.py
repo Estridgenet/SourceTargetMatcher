@@ -12,15 +12,24 @@ import codecs
 from collections import defaultdict
 
 
-# TODO: Add method to add more generic terms to .termdatabase from file
-
-
 class BadFormattingError(Exception):
+    """Exception for lines not formatted in accordance with the preset format.
+
+    Args:
+        badLine (string), line formatted incorrectly.
+    """
+
     def __init__(self, badLine):
         self.badLine = badLine
 
 
 class TermLoader:
+    """Retrieve source/target pairs from source file using preset format
+
+    Args:
+        fileName (string): string-based file path for UTF-8 document.
+    """
+
     def __init__(self, fileName):
 
         self.termDictForDatabase = defaultdict(list)
@@ -31,12 +40,19 @@ class TermLoader:
         )
 
     def getTermDicts(self):
+        """Retrieve terms read in from file.
+
+        Returns:
+            Tuple of 1. terms to be saved into database, and
+                    2. terms not being saved.
+        """
         return (
             self.termDictForDatabase.copy(),
             self.termDictNoSave.copy(),
         )  # does this actually only yield a copy?
 
     def closeFiles(self):
+        """Close read in file."""
         self.specificTerms.close()
 
     def loadTerms(self):
@@ -47,14 +63,16 @@ class TermLoader:
 
         for line in self.specificTerms.readlines():
 
-            if self.isDatabaseFlag(line):
+            if self.isDatabaseFlag(line):  # check for @@@ flag
                 doNotAddToDatabase = True
 
-            elif self.isComment(line):
+            elif self.isComment(line) or self.isEmptyLine(
+                line
+            ):  # check for '#' comment flag or no content
                 continue
 
             else:
-                if self.wellFormatted(line):
+                if self.wellFormatted(line):  # check for correct delimiter, ','
                     sourceTerm, targetTerm = self.cleanSplit(line)
                     if not doNotAddToDatabase:
                         self.termDictForDatabase[sourceTerm].append(targetTerm)
@@ -68,23 +86,28 @@ class TermLoader:
         self.closeFiles()
 
     def isDatabaseFlag(self, line):
-        return (
-            line.rstrip() == "@@@"
-        )  # marks that the following terms should not be added to database
+        """Check to see if following terms should not be added to database."""
+        return line.rstrip() == "@@@"
 
     def isComment(self, line):
+        """Check to see if comment flag is present."""
         return line[0] == "#"
 
     def wellFormatted(self, line):
-        """checks for correct delimiter, and prompts user if
-        incorrect delimiter is used"""
-        delimiter = ","
-        if delimiter not in line:
+        """checks for correct (EN or ZH) delimiter.
+
+        Args:
+            line (string) line from read in file."""
+
+        delimiter = (",", "，")
+        if delimiter[0] not in line and delimiter[1] not in line:
             return False
         return True
 
     def cleanSplit(self, line):
-        """splits at delimiter and removes excess spacing"""
+        """Split at delimiter and remove excess spacing."""
+
+        line = line.replace("，", ",")  # replace chinese delimiter if necessary
         src, tgt = line.rstrip().lower().split(",")
         return self.removeChineseMarkings(src), self.removeSpace(tgt)
 
@@ -97,7 +120,7 @@ class TermLoader:
         return tuple(phrase)
 
     def removeSpace(self, termString):
-        """returns tuples for source word and target word"""
+        """Return tuples for target word."""
         phrase = []
         currentTerm = []
         for char in termString:
@@ -111,3 +134,7 @@ class TermLoader:
             phrase.append("".join(currentTerm))
 
         return tuple(phrase)
+
+    def isEmptyLine(self, line):
+        """Check for contentless or space-only string."""
+        return line.rstrip(" \n\t\r") == ""

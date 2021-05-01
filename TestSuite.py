@@ -221,11 +221,93 @@ class testValidator(unittest.TestCase):
 
 class TestReferenceCounter(unittest.TestCase):
     def setUp(self):
-        self.rfcounter = ReferenceNumberCounter.CompareReferenceElements("", "")
+        idnum = "1.TEST"
+        source = "(S02)是推杆, (S03)也是推杆, (S06,S05)也都是推杆! 1.11, 2.2, 300mg"
+        target = "(S02) is a push rod, (S03) is a push rod, (S04, S05) are both push rods. 1.11, 2.22, 300mg."
+
+        matches = [(idnum, source, target)]
+        testFile = open("./TestFiles/test_ref_file.test", "w")
+        self.rfcounter = ReferenceNumberCounter.CompareReferenceElements(
+            matches, testFile
+        )
 
     def testIsChineseChar(self):
         self.assertTrue(self.rfcounter.isChineseChar("的"))
         self.assertFalse(self.rfcounter.isChineseChar("A"))
+
+    @unittest.skip("")
+    def testGetNumbers(self):
+        sourceNumbers = "杯子的容量为500ml, 体量是1.54kg. 100,300,5..1"
+        targetNumbers = "the cup can hold 500ml and weighs 1.54kg. 100, 300, 5. .1"
+
+        # self.assertTrue(self.rfcounter.compareResults(self.rfcounter.getNumbers(sourceNumbers, targetNumbers) == []))
+
+        sourceNumbers = "杯子的容量为50ml, 体量是1.24kg. 100、300、5..10"
+        targetNumbers = "the cup can hold 500ml and weighs 1.54kg. 100, 300, 5. .1"
+
+        # badRes = self.rfcounter.getNumbers(sourceNumbers, targetNumbers)
+
+        self.assertTrue(badRes[0][0] == "50")
+        self.assertTrue(badRes[1][0] == "1.24")
+        self.assertTrue(badRes[2][0] == ".10")
+
+    def testGetElements(self):
+        test1 = ["(S02)是推杆", 1]
+        test2 = ["(S02, S03)是两种推杆", 1]
+        test3 = ["(S02, S03相当于S04)是两种推杆", 1]  # should fail
+        test4 = ["(是两种推杆)", 1]  # should fail
+
+        self.rfcounter.curState = test1
+        self.assertEqual((self.rfcounter.getSourceElements()), ["S02"])
+
+        self.rfcounter.curState = test2
+        self.assertEqual((self.rfcounter.getSourceElements()), ["S02", "S03"])
+
+        self.rfcounter.curState = test3
+        self.assertEqual((self.rfcounter.getSourceElements()), [])
+
+        self.rfcounter.curState = test4
+        self.assertEqual((self.rfcounter.getSourceElements()), [])
+
+        self.rfcounter.closeOutputFile()
+
+    def testGetTargetElements(self):
+        test1 = ["(S02) is a push rod.", 1]
+        test2 = ["(S02, S03) are push rods.", 1]
+        test3 = ["(S02, S03, and other junk) are push rods.", 1]
+        test4 = ["(JUNK JUNK JUNK)", 1]
+
+        self.rfcounter.curState = test1
+        self.assertEqual((self.rfcounter.getSourceElements()), ["S02"])
+
+        self.rfcounter.curState = test2
+        self.assertEqual((self.rfcounter.getSourceElements()), ["S02", "S03"])
+
+        self.rfcounter.curState = test3
+        self.assertAlmostEqual(self.rfcounter.getSourceElements()[4], "junk")
+
+        self.rfcounter.curState = test4
+        self.assertAlmostEqual(self.rfcounter.getSourceElements()[2], "JUNK")
+        self.rfcounter.closeOutputFile()
+
+    def testGetSourceFigNumbers(self):
+        source = "(S02)是推杆, (S03)也是推杆, (S04,S05)也都是推杆!"
+        source = "(S02)是推杆, (S03)也是推杆, (S04,S05)也都是推杆!(这不是好东西)"
+        self.rfcounter.closeOutputFile()
+        print(self.rfcounter.getSourceFigNumbers(source))
+
+    def testCompareResults(self):
+        sourceDict = {"1.11": 2, "1.21": 1}
+        targetDict = {"1.11": 1, "1.21": 1}
+
+        self.rfcounter.compareResults(sourceDict, targetDict)
+        self.rfcounter.closeOutputFile()
+
+    def testCompareTexts(self):
+        self.rfcounter.compareTexts()
+
+        self.rfcounter.closeOutputFile()
+        print(open("./TestFiles/test_ref_file.test", "r").read())
 
 
 def deleteTestFiles():
