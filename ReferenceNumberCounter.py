@@ -1,9 +1,9 @@
 from collections import defaultdict
 import re
 
-# TODO: unparenthesized strings?
+# TODO: unparenthesized strings? Don't think this is possible.
 # TODO: skip drawings and title
-
+# TODO: prettier strings, figure out a way to handle numbers inside parens
 
 class CompareReferenceElements:
     """Compare reference number markers shared by the source and target texts.
@@ -209,7 +209,7 @@ class CompareReferenceElements:
         """Grabs all fig-number like items from within parentheses.
 
         Returns:
-            list: list of strings which elements in parens. will repeat based on
+            list: list of strings representing elements in parens. will repeat based on
             frequency.
         """
         elements = []
@@ -238,8 +238,14 @@ class CompareReferenceElements:
         return []  # shouldn't get here
 
     def compareResults(self, sourceCount, targetCount):
-        # This only provides a source-to-target comparison, because
-        # the target file should not have added any extra content.
+        """Source-to-target comparison of dict keys and values.
+
+        Args:
+            sourceCount (dict): source dictionary with source strings as keys
+            and frequency as value.
+            targetCount (dict): target dictionary with target strings as keys
+            and frequency as value.
+        """
         badResults = []
 
         for key, value in sourceCount.items():
@@ -247,18 +253,28 @@ class CompareReferenceElements:
                 badResult = "ERROR: %s: %s VS %s\n" % (key, value, targetCount[key])
                 badResults.append(badResult)
             else:
-                self.outputfile.write("No error: %s\n" % (key))
+                self.outputfile.write("No error: %s\n" % (key))  # good result
 
         for error in badResults:
             self.outputfile.write(error)
 
     def isChineseChar(self, char):
-        """Check to see if cur char is Chinese character."""
+        """Check to see if current char is a Chinese character."""
         # Trick by Ceshine Lee
         return True if (re.search("[\u4e00-\u9FFF]", char)) else False
 
     def getNumbers(self, source, target):
-        # perhaps a simple re search \d*[.]\d* ? Then remove matches that are just [.]
+        """Retrieves numbers from both source and target strings, returning count
+        dictionaries.
+
+        Args:
+            source (string): source string with chinese punctuation removed.
+            target (string): target string.
+
+        Returns:
+            tuple: entry 1: dictionary with source nums / frequencies as key/value pairs.
+                    entry 2: dict with target nums / frequences as key/value pairs.
+        """
 
         sourceCount = defaultdict(int)
         targetCount = defaultdict(int)
