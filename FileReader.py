@@ -52,7 +52,7 @@ class FileReader:
         self.state[1] += 1  # state change
 
         # recurse if no suitable char is found, will break if you give it
-        #  data  with 1000+ newlines
+        #  data with 1000+ newlines
         if output in ("\t", "\r", "\n"):
             return self.getNextChar()
 

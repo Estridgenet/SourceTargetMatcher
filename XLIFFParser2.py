@@ -3,8 +3,7 @@ import itertools
 
 COUNTER = itertools.count()
 
-# TODO: comment ignoring
-# TODO: <?xml   ?> ignoring (might break parser currently)
+# TODO: improve readability/add documentation.
 
 
 class Node:
@@ -18,6 +17,8 @@ class Node:
         self.content = []
 
     def __repr__(self):
+
+        # The following can be used for more verbose debugging.
         """
         stringID = "Node %i\n" % (self.TAGID)
         stringTag = "Tag: %s\n" % (self.tag)
@@ -32,6 +33,7 @@ class Node:
 
         return stringID + stringTag + stringAttributes + stringChildren + contentString
         """
+
         return self.__str__()
 
     def __str__(self):
@@ -102,7 +104,6 @@ class XMLParser:
         if curChar == "":
             return None  # EOF
 
-
         return self.getTagName()
 
     def getTagTree(self, tag):
@@ -132,7 +133,7 @@ class XMLParser:
             while TagID[1] <= len(self.tagStack):
 
                 content = self.getContent()
-                #print(root, content)
+                # print(root, content)
                 if content != "":
                     root.content.append(content)
 

@@ -1,16 +1,16 @@
-### Name: Eli Estridge
-### Date: 3 APR 2021
-### Use: Patent Phrase Validator
-import sys
-
 import PhraseLoader
 import ReferenceNumberCounter
 import XLIFFParser2
 import ExtractContent
 import DatabaseHelper as db
-from collections import deque
 
+import sys
+import re
+from collections import deque
 from collections import defaultdict
+
+# TODO: Add documentation/improve readability
+
 
 """This is a multi-pass validator to check for missed terminology and
 mistranslated phrases in the segments of a patent.
@@ -122,7 +122,7 @@ class Validator:
                     lambda x: x != "",
                     map(
                         self.removePunctuation,
-                        string.lower().rstrip().replace("-", " ").split(" "),
+                        re.sub("[-/]", " ", string.rstrip().lower()).split(" "),
                     ),
                 )
             )
@@ -136,8 +136,6 @@ class Validator:
                 stringSlice = tuple(
                     words[sliceStart : sliceStart + matchLength],
                 )
-
-            # print(stringSlice)
 
             if stringSlice in terms:
                 countDict[stringSlice] += 1
@@ -192,7 +190,6 @@ class Validator:
             self.outputDoc.write(r)
 
     def invertDict(self, d):
-        # TODO: should add -p flag in notes, we can look for singular and plural
 
         """only works for 1-k correspondences"""
         invertedDict = dict()

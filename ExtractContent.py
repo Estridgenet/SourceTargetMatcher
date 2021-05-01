@@ -1,15 +1,5 @@
 import re
 
-# Sample XLIFF tagging:
-"""
-<body>
-<trans-unit id="0000000001" datatype="x-text/xml" restype="string">
-<source>人机交互系统及其方法、终端设备</source>
-<target/>
-</trans-unit>
-</body>
-"""
-
 from collections import defaultdict
 import XLIFFParser2
 
@@ -61,7 +51,7 @@ class TagBinder:
         dfsDict = dict()
         for sourceNode in self.dataTree[
             sourceTag
-        ]:  # this deletes nodes if said nodes don't have unique tag id & attribute structures
+        ]:  # warning: deletes nodes if they don't have unique path string!
             self.dfsSourceHelper("", sourceNode, dfsDict)
 
         return dfsDict

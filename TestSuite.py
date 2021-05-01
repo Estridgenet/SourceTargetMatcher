@@ -1,3 +1,4 @@
+import DatabaseHelper
 import unittest
 import PhraseLoader
 import XLIFFParser2

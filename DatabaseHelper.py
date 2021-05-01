@@ -1,6 +1,8 @@
 import sys
 from collections import defaultdict
 import PhraseLoader
+import os
+import re
 
 # TODO: urgent: remove own database paths
 
@@ -16,17 +18,58 @@ class DatabaseHelper:
     """
 
     def __init__(self):
-        if sys.platform.startswith("win"):
-            self.DATABASEPATH = r"C:/Users/Eli/Desktop/PatentValidator/SourceTargetMatcher/.termDatabase"
-        else:
-            self.DATABASEPATH = r"/home/estridgenet/Dropbox/Programming/Python/PatentValidate/PatentValidator/.termDatabase"
+        self.DATABASEPATH = self.readInDatabasePath()
 
-        database = open(
+        dbfile = open(
             self.DATABASEPATH,
             "r",
         )
-        self.database = self.populateDatabase(database.readlines())
-        database.close()
+        self.database = self.populateDatabase(dbfile.readlines())
+        dbfile.close()
+
+    def readInDatabasePath(self):
+        SCRIPTPATH = sys.path[0]
+
+        configPath = os.path.join(SCRIPTPATH, "validator.config")
+
+        # Try to read from config file
+        try:
+            f = open(configPath, "r")
+
+        # Create new config if none found
+        except FileNotFoundError:
+            newDatabasePath = str(
+                input(
+                    "No config found.  Where would you like to specify"
+                    + " your Database path?\n Please Specify, or press enter to save in current script directory."
+                )
+            )
+            if newDatabasePath.rstrip() == "":
+                newDatabasePath = os.path.join(SCRIPTPATH, ".termDatabase")
+            f = open(configPath, "w")
+            f.write("DATABASEPATH='%s'" % (newDatabasePath))
+            f.close()
+
+            f = open(configPath, "r")
+
+        # Read from config
+        finally:
+            dbPath = ""
+            for line in f.readlines():
+
+                if line.startswith('"'):  # comments
+                    continue
+
+                if line.startswith("DATABASEPATH"):
+                    dbPath = re.search(r"['](.+)[']", line).group(1)
+
+            if dbPath == "":
+                raise FileNotFoundError(
+                    "No Database in config. Please update validator.config"
+                )
+
+            else:
+                return dbPath
 
     def populateDatabase(self, linesList):
         """Creates dictionary of database entries from input list.
