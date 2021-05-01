@@ -1,9 +1,11 @@
 from collections import defaultdict
 import re
+from collections import deque
 
 # TODO: unparenthesized strings? Don't think this is possible.
 # TODO: skip drawings and title
 # TODO: prettier strings, figure out a way to handle numbers inside parens
+
 
 class CompareReferenceElements:
     """Compare reference number markers shared by the source and target texts.
@@ -69,6 +71,8 @@ class CompareReferenceElements:
             list of non-uniform comparison results with id number.
             Formatting is (IDNUM, REFNUM, SOURCECOUNT, TARGETCOUNT).
         """
+        refResults = []
+        numberResults = []
 
         for matchList in self.matches:
 
@@ -78,12 +82,15 @@ class CompareReferenceElements:
             sourceCount = self.getSourceFigNumbers(source)
             targetCount = self.getTargetParensContent(target)
 
-            self.outputfile.write(idnum + "\n")
-            self.compareResults(sourceCount, targetCount)
+            r = [idnum, self.compareResults(sourceCount, targetCount)]
+            refResults.append(r)
 
             sourceCount, targetCount = self.getNumbers(source, target)
 
-            self.compareResults(sourceCount, targetCount)
+            r = [idnum, self.compareResults(sourceCount, targetCount)]
+            numberResults.append(r)
+
+        return refResults, numberResults
 
     def removePunctuation(self, word):
         return "".join([char for char in word if char not in self.punctuationSet])
@@ -246,17 +253,16 @@ class CompareReferenceElements:
             targetCount (dict): target dictionary with target strings as keys
             and frequency as value.
         """
-        badResults = []
+        results = deque()
 
         for key, value in sourceCount.items():
             if value != targetCount[key]:
                 badResult = "ERROR: %s: %s VS %s\n" % (key, value, targetCount[key])
-                badResults.append(badResult)
+                results.append(badResult)
             else:
-                self.outputfile.write("No error: %s\n" % (key))  # good result
+                results.appendleft("No error: %s\n" % (key))  # good result
 
-        for error in badResults:
-            self.outputfile.write(error)
+        return results
 
     def isChineseChar(self, char):
         """Check to see if current char is a Chinese character."""

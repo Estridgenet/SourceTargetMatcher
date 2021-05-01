@@ -127,14 +127,23 @@ G10L,韵律特征,prosodic feature
 G10L,韵律语调短语,prosodic intonational phrase
 GEN,主题,subject matter
 GEN,从属权利要求,dependent claim
+GEN,从属权利要求,dependent claims
 GEN,公知常识,common general knowledge
+GEN,多项从属权利要求,multiple dependent claim
 GEN,多项从属权利要求,multiple dependent claims
 GEN,常规实践,common practice
-GEN,常规设计手段,customary design
+GEN,常规设计手段,convential design
+GEN,惯用手段,customary means
+GEN,技术人员,person skilled in the art
 GEN,技术方案,technical solution
-GEN,本领域,the technical field
+GEN,技术方案,technical solutions
+GEN,本领域,the present field
 GEN,权利要求,claim
+GEN,权利要求,claims
 GEN,独立权利要求,independent claim
+GEN,独立权利要求,independent claims
+GEN,符合,complies
+GEN,符合,comply
 H01,内插管,internally inserted pipe
 H01,减速器,speed reducer
 H01,定子,stator

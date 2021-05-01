@@ -85,15 +85,14 @@ class DatabaseHelper:
         ipcDict = defaultdict(dict)
         for line in linesList:
             ipc, source, target = line.strip(" \n").split(",")
-            if source in ipcDict[ipc]:
-                ipcDict[ipc][tuple([char for char in source])].append(
-                    tuple(target.split(" "))
-                )
+            sourceKey = tuple([char for char in source])
+            targetEntry = tuple(target.split(" "))
+
+            if sourceKey in ipcDict[ipc]:
+                ipcDict[ipc][sourceKey].append(targetEntry)
 
             else:
-                ipcDict[ipc][tuple([char for char in source])] = [
-                    tuple(target.split(" "))
-                ]
+                ipcDict[ipc][sourceKey] = [targetEntry]
 
         return ipcDict
 

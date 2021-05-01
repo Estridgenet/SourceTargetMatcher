@@ -75,6 +75,7 @@ class Validator:
         }
 
     def run(self):
+        wordResults = []
 
         for entry in self.parsedList:
             ID, sourceSegment, targetSegment = entry
@@ -82,7 +83,7 @@ class Validator:
             sourceCount = defaultdict(int)
             targetCount = defaultdict(int)
 
-            # Compares strings of length 1 to 10
+            # Grab matching strings of length 1 to 10
             for stringLength in range(1, 10):
                 self.extractTerms(
                     sourceSegment, self.sourceDict, stringLength, sourceCount, "ZH"
@@ -92,10 +93,10 @@ class Validator:
                 )
 
             results = self.compareCounts(sourceCount, targetCount)
-            # print(sourceCount)
-            # print(targetCount)
 
-            self.writeResults(ID, results)
+            wordResults.append([ID, results])
+
+        return wordResults
 
     def extractTerms(self, string, terms, matchLength, countDict, lang):
         """removes unnecessary punctuation and creates a list from the terms"""
@@ -122,7 +123,7 @@ class Validator:
                     lambda x: x != "",
                     map(
                         self.removePunctuation,
-                        re.sub("[-/]", " ", string.rstrip().lower()).split(" "),
+                        re.sub("[%-/]", " ", string.rstrip().lower()).split(" "),
                     ),
                 )
             )
@@ -150,6 +151,8 @@ class Validator:
         results = deque()
 
         for sourceWord, targetList in self.sourceDict.items():
+            # print("####")
+            # print(sourceWord, targetList)
             swCount = sourceCount[sourceWord]
             twCount = 0
 
@@ -184,13 +187,29 @@ class Validator:
 
         return results
 
-    def writeResults(self, ID, results):
-        self.outputDoc.write("Segment ID: %s\n" % (ID))
-        for r in results:
-            self.outputDoc.write(r)
+    def writeResults(self, wordRes, refRes, numRes):
+        VERBOSE = False
+        for i in range(len(wordRes)):
+            ID = wordRes[i][0]
+            self.outputDoc.write("Segment ID: %s\n" % (ID))
+            self.outputDoc.write("Word Results:\n")
+            for entry in wordRes[i][1]:
+                if VERBOSE is False and entry.startswith('No error'):
+                    continue
+                self.outputDoc.write(entry)
+            self.outputDoc.write("\nRef Num Results:\n")
+            for entry in refRes[i][1]:
+                if VERBOSE is False and entry.startswith('No error'):
+                    continue
+                self.outputDoc.write(entry)
+            self.outputDoc.write("\nNumber Results:\n")
+            for entry in numRes[i][1]:
+                if VERBOSE is False and entry.startswith('No error'):
+                    continue
+                self.outputDoc.write(entry)
+            self.outputDoc.write("\n#####################\n")
 
     def invertDict(self, d):
-
         """only works for 1-k correspondences"""
         invertedDict = dict()
         for k, vList in d.items():
@@ -250,11 +269,14 @@ def main(termsList, xliffFile):
         output,
         matchList,
     )
-    k.run()
+    phraseResults = k.run()
 
     # Runs reference tag check
     refChecker = ReferenceNumberCounter.CompareReferenceElements(matchList, output)
-    refChecker.compareTexts()
+    refResults, numResults = refChecker.compareTexts()
+
+    # Write output file
+    k.writeResults(phraseResults, refResults, numResults)
 
     # add relevant terms to dictionary and rewrite to database
     database.setTerms(specTermDictForDatabase, IPCCODEGENERIC)

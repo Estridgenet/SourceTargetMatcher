@@ -11,8 +11,7 @@ import ReferenceNumberCounter
 
 from collections import defaultdict
 
-# TODO: update outdated below
-
+# TODO: update outdated tests below
 
 class TestExtractContent(unittest.TestCase):
     def setUp(self):
@@ -285,10 +284,10 @@ class TestReferenceCounter(unittest.TestCase):
         self.assertEqual((self.rfcounter.getSourceElements()), ["S02", "S03"])
 
         self.rfcounter.curState = test3
-        self.assertAlmostEqual(self.rfcounter.getSourceElements()[4], "junk")
+        self.assertEqual(self.rfcounter.getSourceElements()[4], "junk")
 
         self.rfcounter.curState = test4
-        self.assertAlmostEqual(self.rfcounter.getSourceElements()[2], "JUNK")
+        self.assertEqual(self.rfcounter.getSourceElements()[2], "JUNK")
         self.rfcounter.closeOutputFile()
 
     def testGetSourceFigNumbers(self):

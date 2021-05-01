@@ -1,10 +1,12 @@
-# Looks  through all subdirectories in a designated directory and
-# pulls the first sdlxliff file and paired termbase file (notes.txt)
-# if it can.  If it doesn't find a termbase.txt file OR a .sdlxliff file, it
-# continues to next dir without adding any of the files in the current dir
+"""
+Looks  through all subdirectories in a designated directory and
+pulls the first sdlxliff file and paired termbase file (notes.txt)
+if it can.  If it doesn't find a termbase.txt file OR a .sdlxliff file, it
+continues to next dir without adding any of the files in the current dir
+"""
+
 import os
 import re
-
 import Validator
 import sys
 
